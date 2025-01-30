@@ -2,11 +2,10 @@
 
 Metaepigenomics is a powerfll culture-independent method to reveal epigenomic landscape in microbial community. Here, we developed a bioinformatic workflow for metaepigenomics.
 
-Please note that the scripts were prepared for the analysis of the study. This means that the scripts are not strictly concatenated as a stand-alone research pipeline. The analysis have been performed on [the supercomputing system at National Institute of Genetics (NIG), Research Organization of Information and Systems (ROIS)](https://sc.ddbj.nig.ac.jp/en/), and [the Earth Simulator systems at JAMSTEC](https://www.jamstec.go.jp/es/en/).
+Please note that the scripts were prepared for the analysis of the original studies. This means that the scripts are not strictly concatenated as a stand-alone research pipeline and vilidated for other perspectives. The analysis have been performed on [the supercomputing system at National Institute of Genetics (NIG), Research Organization of Information and Systems (ROIS)](https://sc.ddbj.nig.ac.jp/en/), and [the Earth Simulator systems at JAMSTEC](https://www.jamstec.go.jp/es/en/).
 
 Main script and related modules are stored under src/ directory. 
 The official source code repository is at https://github.com/hiraokas/Metaepigenome.
-
 
 ## Code
 The codes are written in shell script and python.
@@ -15,7 +14,6 @@ The codes are written in shell script and python.
 ----|---- 
 | XXX.sh       | XXX |
 | **mainScript_XXX.sh**  | Main script in this study |
-
 
 ## Dataset
 | File                    | Description |
@@ -35,12 +33,8 @@ The codes are written in shell script and python.
 Also we used some tools and databases for detailed data analysis in this study.
 - [MEGA X](https://www.megasoftware.net/) - Phylogenetic tree analysis
 
-
-
 ## Citation 
-
-Hiraoka S. 
-
+Hiraoka S. in prep. 
 ```
-Email: hiraokas@jamstec.go.jp, shiozaki@g.ecc.u-tokyo.ac.jp
+Email: hiraokas@jamstec.go.jp
 ```
