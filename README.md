@@ -33,6 +33,10 @@ The codes are written in shell script and python.
 Also we used some tools and databases for detailed data analysis in this study.
 - [MEGA X](https://www.megasoftware.net/) - Phylogenetic tree analysis
 
+## Usage 
+
+TBA
+
 ## Citation 
 Hiraoka S. in prep. 
 ```
