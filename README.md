@@ -7,6 +7,15 @@ Please note that the scripts were prepared for the analysis of the original stud
 Main script and related modules are stored under src/ directory. 
 The official source code repository is at https://github.com/hiraokas/Metaepigenome.
 
+### Main step
+- Metagenome assembly
+- Binning
+- MAG/SAG dereprication, quarity check, genomic analysis, and phylogenetic analysis
+- HiFi read mapping on MAG/SAG
+- Modification call and motif prediction
+- defense system prediction
+- Host-virus prediction
+ 
 ## Code
 The codes are written in shell script and python.
 
@@ -30,7 +39,7 @@ The codes are written in shell script and python.
 - [Bowtie2](https://bowtie-bio.sourceforge.net/bowtie2/index.shtml) - Read mapping
 - [Nonpareil3](https://github.com/lmrodriguezr/nonpareil) - Metagenomic coverage estimation
 
-Also we used some tools and databases for detailed data analysis in this study.
+Also we used additional tools and databases for detailed data analysis in this study.
 - [MEGA X](https://www.megasoftware.net/) - Phylogenetic tree analysis
 
 ## Usage 
