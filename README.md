@@ -7,6 +7,9 @@ Please note that the scripts were prepared for the analysis of the original stud
 Main script and related modules are stored under src/ directory. 
 The official source code repository is at https://github.com/hiraokas/Metaepigenome.
 
+### Overview
+<img width="821" height="489" alt="Metaepigenome_overview" src="https://github.com/user-attachments/assets/9b8f3d0d-5996-4dcd-8053-788e1eda7a31" />
+
 ### Main step
 - Metagenome assembly
 - Binning
@@ -15,7 +18,7 @@ The official source code repository is at https://github.com/hiraokas/Metaepigen
 - Modification call and motif prediction
 - defense system prediction
 - Host-virus prediction
- 
+
 ## Code
 The codes are written in shell script and python.
 
