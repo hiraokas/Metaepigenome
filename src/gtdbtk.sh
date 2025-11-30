@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+#$ -m be
+#$ -cwd
+#$ -pe threads 6
 
 function usage() {
     cat <<'EOF'
@@ -11,7 +14,8 @@ Description
     History: 20230609 (add de_novo_wf mode)
     History: 20230610 (update 2.3.0 with release214)
     History: 20240521 (update 2.4.0 with release220)
-    History: 20250108
+    History: 20250528 (update            release226, v2.4.1 was not work well in ES system)
+    History: 20250805
     - https://github.com/Ecogenomics/GTDBTk
     - gtdb-tk takes a lot of memory space (typically <60 GB, ~880 GB in ES system).
     - officially, 150 GB per threads are required by pplacer
@@ -22,7 +26,6 @@ Usage:
     this.sh de_novo_wf_archaea   dir_pass [thread=6]
     this.sh -H
     this.sh -T [dummy] [thread=6]
-
 Tips:
     ./qsub_DDBJ.sh medium 10 20 20 ./gtdbtk.sh -T dummy 10
 
@@ -33,7 +36,7 @@ Tips:
 ========================================================================================================================================
 EOF
     return 0
-}   
+}
 
 function install() {
     cat <<'EOF'
@@ -44,9 +47,9 @@ Install:
 
     #conda install -c bioconda gtdbtk==2.3.0
     #conda create -n gtdbtk -c conda-forge -c bioconda gtdbtk==2.3.0  #sould specify version
-    conda create -n gtdbtk-2.4.0 -c conda-forge -c bioconda gtdbtk=2.4.0
-    conda activate gtdbtk-2.4.0
-    conda env config vars set GTDBTK_DATA_PATH=${HOME}/database/GTDB-Tk/release220/
+    conda create -n gtdbtk-2.4.1 -c conda-forge -c bioconda gtdbtk=2.4.1
+    conda activate gtdbtk-2.4.1
+    conda env config vars set GTDBTK_DATA_PATH=${HOME}/database/GTDB-Tk/release226/
 
     #tensorflow
     #pip install tensorflow
@@ -57,8 +60,8 @@ Install:
     tar xvzf gtdbtk_data.tar.gz
 
     #check
-    conda activate gtdbtk-2.4.0 
-    database=${HOME}/database/GTDB-Tk/release220/
+    conda activate gtdbtk-2.4.1
+    database=${HOME}/database/GTDB-Tk/release226/
     export GTDBTK_DATA_PATH=${database}
     gtdbtk check_install
 
@@ -68,17 +71,21 @@ EOF
     return 0
 }   
 
-usage_exit() { usage; exit 1 }
+usage_exit() {
+    usage
+    exit 1
+}
 
-if [ $# -lt 1 ]; then usage_exit; fi
+if [ $# -lt 1 ]; then
+    echo "Insufficient parameters"
+    usage
+    exit 1
+fi
 
 mode=${1}
 targetDir=${2}
-OutputDir_root=../GTDB-Tk
+OutputDir_root=../taxonomyAssignment
 thread=6
-
-database=${HOME}/database/GTDB-Tk/release220/
-export GTDBTK_DATA_PATH=${database}
 
 if [ $# -gt 2 ]; then
     thread=${3}
@@ -93,15 +100,20 @@ if [ ! -e ${output_dir} ]; then
     mkdir ${output_dir}
 fi
 
-Dirpass=`echo ${targetDir}| sed -e "s/\/$//g"`
-DirpassBase=${Dirpass##*/}
-OutputDir=${OutputDir_root}/${mode}_${DirpassBase}
-
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate gtdbtk-2.4.0 
+#conda activate gtdbtk-2.4.1
+
+#database=${HOME}/database/GTDB-Tk/release220/ ; DBversion="R220"
+database=${HOME}/database/GTDB-Tk/release226/ ; DBversion="R226"
+export GTDBTK_DATA_PATH=${database}
 
 #for DDBJ
 #module load tensorflow2-py36-cuda10.1-gcc/2.0.0
+
+Dirpass=`echo ${targetDir}| sed -e "s/\/$//g"`
+DirpassBase=${Dirpass##*/}
+OutputDir=${OutputDir_root}/${mode}_${DirpassBase}_${DBversion}
 
 echo "============================================================"
 which gtdbtk
@@ -125,7 +137,7 @@ fi
 
 #check extention
 ext=`ls ${targetDir}/ | head -1 | rev | cut -f1 -d "."| rev`
-echo "Automatically detedted extention: ${ext}"
+echo "Auto-detedted extention: ${ext}"
 
 #run
 mkdir -p ${OutputDir}/tmp/
@@ -134,8 +146,13 @@ if [ ${mode} == "classify_wf" ]; then
         --force --tmpdir ${OutputDir}/tmp/ --mash_db ${OutputDir} --scratch_dir ${OutputDir}/scratch/ #  --debug --full_tree
 
 elif [ ${mode} == "de_novo_wf_bacteria" ]; then
+    outgroup="p__Patescibacteriota"
+    if [ ${DBversion} == "R220" ]; then
+        outgroup="p__Patescibacteria"
+    fi
+
     gtdbtk de_novo_wf  --genome_dir ${Dirpass}/ --extension ${ext} --out_dir ${OutputDir} --keep_intermediates \
-        --force --tmpdir ${OutputDir}/tmp/ --bacteria --debug  --outgroup_taxon p__Patescibacteria --cpus ${thread}     #but try (20241007)
+        --force --tmpdir ${OutputDir}/tmp/ --bacteria --debug  --outgroup_taxon ${outgroup} --cpus ${thread}     #but try (20241007)
          #--tmpdir ${OutputDir}/tmp/   --bacteria --debug  --outgroup_taxon p__Patescibacteria #--cpus ${thread}   #THREADS setting will not be worked under qsub (well work under qlogin environment, reason unclear) (20230611)
 
 elif [ ${mode} == "de_novo_wf_archaea" ]; then
@@ -144,12 +161,12 @@ elif [ ${mode} == "de_novo_wf_archaea" ]; then
          #--tmpdir ${OutputDir}/tmp/   --archaea  --debug --outgroup_taxon p__Altiarchaeota #--cpus ${thread}
 else
     echo "Illigal mode: ${mode}"
-    exit
+    exit 1
 fi
 
 # clean---------------------------------------
 echo "Clean tmeporaly files/dirs"
-#rm -r ${OutputDir}/align  # this will be used for phylogenetic tree construction, so not be removed
+#rm -r ${OutputDir}/align  # this will be used for phylogenetic tree construction, so do not remove
 rm -r ${OutputDir}/tmp/
 rm -r ${OutputDir}/*/intermediate_results
 rm    ${OutputDir}/gtdb_ref_sketch.msh

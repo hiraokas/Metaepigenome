@@ -11,12 +11,12 @@ Description:
     hiraokas@jamstec.go.jp
     Created: 20230403
     History: 20230624 (add gene mode)
-    History: 20250220
+    History: 20250416
 Usage:
     this.sh genome genome.fasta           [threads=6]
     this.sh gene   gene.faa     gene.gff  [threads=6]
 Install:
-    conda create -n padloc -c conda-forge -c bioconda -c padlocbio padloc
+    conda create -n padloc -c conda-forge -c bioconda -c padlocbio padloc=2.0.0
     conda activate padloc
     padloc --db-update
 
@@ -75,9 +75,11 @@ BASE_FILENAME=${FILENAME%.*}
 
 echo "==========================================================="
 echo "mode:          ${mode}"
+echo "Input:         ${2}    ${3}"
 echo "Output dir:    ${output_dir}"
 echo "Output prefix: ${FILENAME}"
 echo "==========================================================="
+#echo "Threads        ${threads}"
 
 #module load r/3.5.2  #for DDBJ server
 export R_LIBS_USER=${HOME}/miniconda3/envs/padloc/lib/R/library
@@ -104,13 +106,12 @@ elif   [ ${mode} == "gene" ]; then
         threads=${4}
     fi
 
-    padloc --faa ${2} --gff ${3} --outdir ${output_dir} --cpu ${threads}  --force
+    padloc --faa ${2} --gff ${3} --outdir ${output_dir} --cpu ${threads} --force --fix-prodigal
 else
     echo "Illigal mode: ${mode}"
     echo "exit."
     exit
 fi
-
 
 #success
 if [ -e ${output_dir}/${FILENAME}.domtblout ]; then
@@ -118,12 +119,12 @@ if [ -e ${output_dir}/${FILENAME}.domtblout ]; then
 fi
 
 #remove tmp files
-rm ${output_dir}/${BASE_FILENAME}_prodigal.faa
-rm ${output_dir}/${BASE_FILENAME}_prodigal.gff
-rm ${output_dir}/${BASE_FILENAME}.domtblout
+#rm ${output_dir}/${FILENAME}_prodigal.faa
+#rm ${output_dir}/${FILENAME}_prodigal.gff
+#rm ${output_dir}/${FILENAME}.domtblout
 
 #move  output files
-mv ${output_dir}/${BASE_FILENAME}_prodigal.csv ${output_dir}/../
-mv ${output_dir}/${BASE_FILENAME}_prodigal.gff ${output_dir}/../
+mv ${output_dir}/${FILENAME}_padloc.csv ${output_dir}/../
+mv ${output_dir}/${FILENAME}_padloc.gff ${output_dir}/../
 
 echo "All done."

@@ -15,7 +15,8 @@ Description:
     History: 20231007 (dbCAN v12)
     History: 20240301 (REBASE 20240301)
     History: 20241007 (dbCAN v13)
-    History: 20250202
+    History: 20251021 (dbCAN v14)
+    History: 20251021
     - This script is for Blast search and annotation against protein sequence database.
 Usage:
     $(basename ${0}) [command] [<options>]
@@ -83,10 +84,12 @@ EOF
 
 usage_exit() {
 	usage
+    ./runtime.sh ${start_time}
 	exit 1
 }
 
 start_time=`date +%s`
+echo "start_time: ${start_time}"
 
 #1
 sprot_id=1
@@ -126,8 +129,8 @@ Pfam_annotation="      ${HOME}/database/Pfam_33.1/Pfam-A.clans.tsv"
 
 #5
 dbCAN_id=5
-dbCAN_name="dbCANv13"
-dbCAN_database_hmm="    ${HOME}/database/dbCAN/dbCAN-HMMdb-V13.txt"
+dbCAN_name="dbCANv14"
+dbCAN_database_hmm="    ${HOME}/database/dbCAN/dbCAN-HMMdb-V14.txt"
 dbCAN_annotation=${Pfam_annotation}
 
 #6
@@ -479,11 +482,12 @@ if [ "${SEARCHTOOL}" = "blast" ] || [ "${SEARCHTOOL}" = "rapsearch" ] ; then
     echo ${db_type}
     if [ ! "${db_type}" = "${sprot_id}" ] && [ ! "${db_type}" = "${NOG_id}" ] ; then
         echo "skip (further function will not be annotated)"
-        echo ""
+        ./runtime.sh ${start_time}
         exit
     fi
 
     if [  ${db_type} = ${KEGG_id} ] ; then
+        ./runtime.sh ${start_time}
     	exit
     fi
 
@@ -534,6 +538,7 @@ if [ "${SEARCHTOOL}" = "blast" ] || [ "${SEARCHTOOL}" = "rapsearch" ] ; then
         
 		else
 			echo "Unknown error"
+            ./runtime.sh ${start_time}
 			exit 1
 		fi	
 		
@@ -587,6 +592,7 @@ elif [ "${SEARCHTOOL}" = "ghostz" ] ; then
 	            output_line="${gene_id}""   ""${pfamid}""   ""${name}"
 	        else
 				echo "Unknown error"
+                ./runtime.sh ${start_time}
 				exit 1
 			fi	
 			
@@ -603,6 +609,7 @@ elif [ "${SEARCHTOOL}" = "ghostz" ] ; then
 
 else
     echo "skipped annotation"
+    ./runtime.sh ${start_time}
     exit 0
 fi
 
@@ -612,5 +619,6 @@ mv ${output_annotation}_tmp ${output_annotation}
 
 echo "All done."
 ./runtime.sh ${start_time}
+echo "end_time: `date +%s`"
 
 exit 0

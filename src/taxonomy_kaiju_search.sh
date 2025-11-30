@@ -13,13 +13,14 @@ Description:
     History: 20200415
     History: 20231005 (update kaiju v1.9.2 & nrEuk2023-05-10)
     History: 20231005
+    History: 20251008 (change output paths, add database refseq_nr2024-08-14
     - thread:16
     - Kaiju taked a lot of memory space: >150Gb for NR_euk database.
 Database:
     - NrEuk
     - GORG (marine single-cell derived datasaet)
 Usage:
-    this.sh  fastA/Q  [NrEuk,GORG]  [threads=16]
+    this.sh  fastA/Q  [RefSeqNr,NrEuk,GORG]  [threads=16]
 
 -------------------------------------------------------
 Make kaiju database
@@ -49,49 +50,54 @@ addTaxonNames="${HOME}/workspace/software/kaiju-1.9.2/bin/kaiju-addTaxonNames"
 database_pass="${HOME}/database/kaiju/"
 
 # database----------------------------------------------------------------------------------------------
-MODE_nr="NrEuk"
-#database_node="${database_pass}kaiju_20211123/nodes.dmp"
-#database_name="${database_pass}kaiju_20211123/names.dmp"
-#database_fmi=" ${database_pass}kaiju_20211123/kaiju_db_nr_euk.fmi"
-database_node="${database_pass}kaiju_20230510/nodes.dmp"
-database_name="${database_pass}kaiju_20230510/names.dmp"
-database_fmi=" ${database_pass}kaiju_20230510/kaiju_db_nr_euk.fmi"
+MODE_refseqnr="RefSeqNr"
+database_RefSeqNr_node="${database_pass}/kaiju_RefSeqNr_20240813/nodes.dmp"
+database_RefSeqNr_name="${database_pass}/kaiju_RefSeqNr_20240813/names.dmp"
+database_RefSeqNr_fami="${database_pass}/kaiju_RefSeqNr_20240813/kaiju_db_refseq_nr.fmi"
+
+MODE_NrEuk="NrEuk"
+database_NrEuk_node="${database_pass}/kaiju_20230510/nodes.dmp"
+database_NrEuk_name="${database_pass}/kaiju_20230510/names.dmp"
+database_NrEuk_fami="${database_pass}/kaiju_20230510/kaiju_db_nr_euk.fmi"
 
 MODE_gorg="GORG"
-#database_node_GORG="${database_pass}GORG_v1_CRESTnodes.dmp"  #silva mode
-#database_name_GORG="${database_pass}GORG_v1_CRESTnames.dmp"  #silva mode
-#database_fmi_GORG=" ${database_pass}GORG_v1_CREST.fmi"  #silva mode
-database_node_GORG="${database_pass}GORG_v1_NCBInodes.dmp"
-database_name_GORG="${database_pass}GORG_v1_NCBInames.dmp"
-database_fmi_GORG=" ${database_pass}GORG_v1_NCBI.fmi"
+database_GORG_node="${database_pass}/GORG_v1_NCBInodes.dmp"
+database_GORG_name="${database_pass}/GORG_v1_NCBInames.dmp"
+database_GORG_fami="${database_pass}/GORG_v1_NCBI.fmi"
 #----------------------------------------------------------------------------------------------
 
 threads=16
 start_time=`date +%s`
+OutputDir_root=../taxonomyAssignment
 
 if [ $# -lt 1 ]; then
     usage
     exit 1
 fi
 
-MODE=${MODE_nr}
 if   [ $# -gt 1 ]; then
-    if   [ ${2} = "GORG" ]; then
-        echo "GORG mode"
-        database_node=${database_node_GORG}
-        database_name=${database_name_GORG}
-        database_fmi=${database_fmi_GORG}
-        MODE=${MODE_gorg}
+    if   [ ${2} = "RefSeqNr" ]; then
+        database_node=${database_RefSeqNr_node}
+        database_name=${database_RefSeqNr_name}
+        database_fami=${database_RefSeqNr_fami}
+        MODE=${MODE_refseqnr}
     elif [ ${2} = "NrEuk" ]; then
-        echo "NR mode" 
+        database_node=${database_NrEuk_node}
+        database_name=${database_NrEuk_name}
+        database_fami=${database_NrEuk_fami}
+        MODE=${MODE_NrEuk}
+    elif   [ ${2} = "GORG" ]; then
+        database_node=${database_GORG_node}
+        database_name=${database_GORG_name}
+        database_fami=${database_GORG_fami}
+        MODE=${MODE_gorg}
     else
         echo "Undefiended mode: ${2}"
         usage
         exit 1   
     fi
-else
-    echo "NR mode"
 fi
+echo "Mode: ${MODE}"
 
 if [ $# -gt 2 ]; then
     echo "thread: ${3}"
@@ -110,10 +116,10 @@ if [ ${DIRNAME_UPUP} = "assembly" ]; then  #canu
 fi
 
 #add mode
-BASE_FILENAME=${MODE}_${BASE_FILENAME}
+BASE_FILENAME=Kaiju${MODE}_${BASE_FILENAME}
 echo ${BASE_FILENAME}
 
-OUTPUT_PATH=../taxonomy/${BASE_FILENAME}
+OUTPUT_PATH=${OutputDir_root}/${BASE_FILENAME}
 if [ ! -e ${OUTPUT_PATH} ]; then
     mkdir ${OUTPUT_PATH} -p
 fi
@@ -127,7 +133,7 @@ if [ ! -e ${OUTPUT_FILE} ]; then
     command="${kaiju} \
             -z ${threads} \
             -t ${database_node} \
-            -f ${database_fmi} \
+            -f ${database_fami} \
             -i ${1} \
             -o ${OUTPUT_FILE} \
             -a greedy -e 5" 
@@ -142,30 +148,29 @@ fi
 #----------------------------------------------------------------------------------------------
 #report
 #----------------------------------------------------------------------------------------------
-if [ ! -e ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_domain ]; then
+if [ ! -e ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv ]; then
     ${kaiju2krona}   -v -t ${database_node} -n ${database_name}            -o ${OUTPUT_PATH}/${BASE_FILENAME}.krona                    -i ${OUTPUT_FILE}
 
     #taxono summary (calculate rerative abundances)
-    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r phylum  -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_phylum       ${OUTPUT_FILE}
-    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r class   -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_class        ${OUTPUT_FILE}
-    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r order   -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_order        ${OUTPUT_FILE}
-    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r family  -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_family       ${OUTPUT_FILE}
-    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r genus   -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_genus        ${OUTPUT_FILE}
-    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r species -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_species      ${OUTPUT_FILE}
+    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r phylum  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv   ${OUTPUT_FILE}
+    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r class   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.class.tsv    ${OUTPUT_FILE}
+    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r order   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.order.tsv    ${OUTPUT_FILE}
+    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r family  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.family.tsv   ${OUTPUT_FILE}
+    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r genus   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.genus.tsv    ${OUTPUT_FILE}
+    ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r species -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.species.tsv  ${OUTPUT_FILE}
 
     #readID-taxon
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name}    -p      -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_FULL    -i ${OUTPUT_FILE}
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r phylum  -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_phylum  -i ${OUTPUT_FILE}
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r class   -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_class   -i ${OUTPUT_FILE}
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r order   -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_order   -i ${OUTPUT_FILE}
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r family  -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_family  -i ${OUTPUT_FILE}
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r genus   -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_genus   -i ${OUTPUT_FILE}
-    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r species -o ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_species -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name}    -p      -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.FULL.tsv    -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r phylum  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.phylum.tsv  -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r class   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.class.tsv   -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r order   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.order.tsv   -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r family  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.family.tsv  -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r genus   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.genus.tsv   -i ${OUTPUT_FILE}
+    ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r species -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.species.tsv -i ${OUTPUT_FILE}
 
     #domain
-    cat ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_FULL   |cut -f-2 -d ";" |sed -e "s/cellular organisms; //g" |cut -f-1 -d ";" > ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_domain
-    #cat ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_domain |cut -f4 |sort |uniq -c |awk '{print "dummy\t" $1 "\t" $2}'           > ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_domain
-    cat ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.names.out_domain |cut -f4 |sort |uniq -c |awk '{print "dummy\t0\t" $1 "\t0\t" $2}'     > ${OUTPUT_PATH}/${BASE_FILENAME}_kairep.summary_domain
+     cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.FULL.tsv   |cut -f-2 -d ";" |sed -e "s/cellular organisms; //g" |cut -f-1 -d ";" > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv
+    #cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv |cut -f4 |sort |uniq -c |awk '{print "dummy\t0\t" $1 "\t0\t" $2}'     > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.domain.tsv
 
 fi
 
