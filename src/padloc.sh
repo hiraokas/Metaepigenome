@@ -11,7 +11,10 @@ Description:
     hiraokas@jamstec.go.jp
     Created: 20230403
     History: 20230624 (add gene mode)
-    History: 20250416
+    History: 20251225
+    - This is a wrapper of Padloc for defense system prediction from genome.
+Required:
+    Conda environment (padloc)
 Usage:
     this.sh genome genome.fasta           [threads=6]
     this.sh gene   gene.faa     gene.gff  [threads=6]
@@ -108,8 +111,7 @@ elif   [ ${mode} == "gene" ]; then
 
     padloc --faa ${2} --gff ${3} --outdir ${output_dir} --cpu ${threads} --force --fix-prodigal
 else
-    echo "Illigal mode: ${mode}"
-    echo "exit."
+    echo "Illigal mode: ${mode}. Exit."
     exit
 fi
 

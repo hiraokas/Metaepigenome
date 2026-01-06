@@ -18,10 +18,12 @@ Description:
     History:  20230626 (allowing multiple version of smrtlink)
     History:  20240307 (smrtlink v13.0.0)
     History:  20250227 (smrtlink v25.1.0)
-    - Should used max threads (e.g., 39) in qsub script. This will take a lot of time in some case (e.g., >10h)
+    History:  20251223
+    - Script for DNA modification detection using mapped PacBio reads.
     - Outline: https://github.com/ben-lerch/BaseMod-3.0
     - Final output: ../modification/xxx_motifs.gff
-    - mapping.sh -> this
+    - This will take a lot of time in some case (e.g., >10h). Should used max threads (e.g., 39) for batch job submission.
+    - Dat analysis flow: mapping.sh -> this
 Usage:
     conda activate py38
     this.sh  binned_contigs.fasta  mapped.bam  thread(int)  mode
@@ -54,15 +56,14 @@ if [ $# -lt 4 ]; then
     exit 1
 fi
 
-#---------------------------------------------
 start_time=`date '+%Y-%m-%d %H:%M:%S.%N'`
-#---------------------------------------------
 
 CONTIG_FILE=${1}
 MAPPED_BAM=${2}
 threads=${3}
 MODE=${4}
 
+#---------------------------------------------------------------------------------------------------
 if [ "${MODE}" = "v8" ] ; then
     MotifMaker=" ${HOME}/software/smrtlink_8.0.0.80529/smrtcmds/bin/motifMaker"
     ipdSummary=" ${HOME}/software/smrtlink_8.0.0.80529/smrtcmds/bin/ipdSummary"
@@ -91,6 +92,7 @@ fi
 
 samtools=${HOME}/local/bin/samtools
 
+#---------------------------------------------------------------------------------------------------
 #set output filename
 FILENAME=${MAPPED_BAM##*/}
 BASE_FILENAME=${FILENAME%.*}
@@ -105,6 +107,7 @@ output_motif_csv="    ${output_dir}/${MODE}${BASE_FILENAME}.motifs.csv"
 output_gff_out="      ${output_dir}/${MODE}${BASE_FILENAME}.GFFOut.csv"
 output_log_out="      ${output_dir}/${MODE}${BASE_FILENAME}.log"
 
+# log
 echo "=================================================================================================="
 echo "  modification_pacbio.sh Settings"
 echo "=================================================================================================="
@@ -140,13 +143,12 @@ fi
 
 if [ ! -e ${MAPPED_BAM}.pbi ]; then
     echo "Make pbi file"
-#    ${conda} activate py38
     ${pbindex} ${MAPPED_BAM}
-#    ${conda} deactivate
 else
     echo "Skip pbindex: already exist: ${MAPPED_BAM}"
 fi
 
+#---------------------------------------------------------------------------------------------------
 if [ ! -e ${output_basemod_check} ]; then
     echo "Run ipdSummary"
 
@@ -175,6 +177,7 @@ else
     echo "Skip ipdSummary : already exist: ${output_basemod_check}"
 fi
 
+#---------------------------------------------------------------------------------------------------
 if [ ! -e ${output_motif_csv} ]; then
     echo "Run motifMaker find"
     if [ ! -z ${MODE} ] && [ "${MODE}" = "V1"      ]; then
@@ -193,6 +196,7 @@ else
     echo "Skip MotifMaker find: already exist: ${output_motif_csv}"
 fi
 
+#---------------------------------------------------------------------------------------------------
 if [ ! -e ${output_motif_gff} ]; then
     echo "Run motifMaker reprocess"
     if [ "${MODE}" = "v25" ] || [ "${MODE}" = "defv25" ] ; then   
@@ -206,7 +210,7 @@ fi
 
 echo "All done."
 
-#---------------------------------------------
+#---------------------------------------------------------------------------------------------------
 end_time=`date '+%Y-%m-%d %H:%M:%S.%N'`
 BEGIN_UT="$(date -d ${start_time} +%s)"
 END_UT="$(date -d ${end_time} +%s)"
@@ -214,7 +218,6 @@ total_time="$(((END_UT - BEGIN_UT) / (60 * 60 )))"
 echo "Start: ${start_time}"
 echo "End:   ${end_time}"
 echo "Total run time: ${total_time}h"
-#---------------------------------------------
 
 exit 0
 

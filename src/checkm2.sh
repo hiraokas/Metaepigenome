@@ -7,15 +7,13 @@ Description:
     Satoshi Hiraoka
     hiraokas@jamstec.go.jp
     Fork   : 20220828
-    History: 20250108
+    History: 20251223
     - For quality check of genomes using CheckM2
-Note:
-	threads=20
 Usage:
     conda activate checkm2
     ./checkm2.sh bins_dir [threads=20]
     ./checkm2.sh test     [threads=20]   (for test)
-    ./checkm2.sh install                 (for install setting)
+    ./checkm2.sh install                 (print install help page)
 Tips:
     ./qsub_mem_da.sh 40 ./checkm2.sh ../binning/vamb_DSSMv0.2_concatenate/vamb_DSSMv0.2_concatenate/ 20
     ./qsub_medium.sh 20 ./checkm2.sh ../my_binning/P-MAGs_v0.1/ 20
@@ -111,8 +109,9 @@ if [ ${1} == "install" ]; then
 fi
 
 start_time=`date +%s`
-threads=20
 
+#-------------------------------------------------------------------------------
+threads=20
 output_dir="../CheckM2"
 database_path="${HOME}/database/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
 
@@ -128,8 +127,9 @@ module load CUDA/11.6.2
 #module load NVIDIAHPCSDK/22.3/nvhpc
 #ln -s ~/local/lib/libcuda.so.1 /opt/share/CUDA/11.6.2/targets/x86_64-linux/lib/stubs/libcuda.so
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/local/lib/
+#-------------------------------------------------------------------------------
 
-
+# log
 echo "=================================="
 echo $(which hmmsearch)
 echo "=================================="
@@ -141,10 +141,9 @@ fi
 if [ ${1} == "test" ]; then
     echo "Test mode."
     rm -r ${output_dir}/test
-    checkm2 testrun --threads 10   --lowmem --output-directory ${output_dir}/$test --database_path ${database_path}
+    checkm2 testrun --threads 10 --lowmem --output-directory ${output_dir}/$test --database_path ${database_path}
     exit 0
 fi
-
 input_dir=${1}
 
 if   [ $# -gt 1 ] ; then
@@ -152,21 +151,21 @@ if   [ $# -gt 1 ] ; then
     echo "Threads: ${2}"
 fi
 
-# make output filename
-last_char=`    echo ${input_dir}|rev|cut -c1 |rev`
+# if the last character of the input dir is "/", delete it.
+last_char=`    echo ${input_dir} | rev | cut -c1 | rev`
 if [ ${last_char} = "/" ]; then
-    input_dir=`echo ${input_dir}|rev|cut -c2-|rev`
+    input_dir=`echo ${input_dir} | rev | cut -c2- | rev`
 fi
 echo "Input dir: ${input_dir}"
 
 # set filenames
-str_filename=${input_dir##*/}
-output_maindir="${output_dir}/${str_filename}"
-output_result=" ${output_maindir}/quality_report.tsv"
-final_result="  ${output_dir}/checkm2_${str_filename}.tsv"
+output_prefix=${input_dir##*/}
+output_workdir="${output_dir}/${output_prefix}"
+output_result=" ${output_workdir}/quality_report.tsv"
+final_result="  ${output_dir}/checkm2_${output_prefix}.tsv"
 
-if [ -e ${output_maindir} ]; then
-    rm ${output_maindir} -r
+if [ -e ${output_workdir} ]; then
+    rm ${output_workdir} -r
     sleep 1
 fi
 
@@ -184,15 +183,15 @@ echo "CheckM2 running..."
 #checkm2 predict --threads ${threads}  --input MAG*.fa --output-directory out_dir
 
 # For directory
-checkm2 predict -x ${EXT} --threads ${threads}  --input ${input_dir} --output-directory ${output_maindir}   --lowmem  --database_path ${database_path}
+checkm2 predict -x ${EXT} --threads ${threads}  --input ${input_dir} --output-directory ${output_workdir}   --lowmem  --database_path ${database_path}
 
 # move output files after the creation of main directory by CheckM2 and finished the process
 mv ${output_result} ${final_result}
 
 # cleanup
-rm -r ${output_maindir}
+rm -r ${output_workdir}
 
 ./runtime.sh "${start_time}"
-echo "done"
+echo "CheckM done."
 
 exit 0

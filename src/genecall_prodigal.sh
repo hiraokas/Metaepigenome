@@ -7,14 +7,18 @@ function usage() {
     cat <<EOF
 ========================================================================================================================================
 Description:
-    This is a script for CDS prediction using Prodigal.
-    created: <2017
+    Satoshi Hiraoka
+    hiraokas@jamstec.go.jp
+    Created: <2017
     History:  20220503 (add multi-split mode)
     History:  20221122 (accept fasta.gz)
     History:  20250531 (.fna ang .gff will not output as defalt)
+    History:  20251225
+    - This is a script for CDS prediction using Prodigal.
     - Input file is recommended to be splited by 5GB if exceeded.
-    - seqkit, prodigal
     - To output fasta and gff files in addition to faa, add "all" option.
+Required:
+    seqkit, prodigal
 Usage:
     genecall_prodigal input_file.fasta/q/fasta.gz meta/single/short [all]
 TIPS:
@@ -81,9 +85,9 @@ if [ ${EXT} = "fq" ] || [ ${EXT} = "fastq" ] ; then
     INPUT_FILE=${NEW_INPUT_FILE}
 fi
 
-#===========================================
-# input: filepass
-#===========================================
+#==================================================================================
+# input: filepath
+#==================================================================================
 function my_prodigal() {
     InputFilePass=${1}
     echo "Input file: ${1}"
@@ -187,5 +191,5 @@ PT=`expr ${PT} % 3600`
 M=`expr ${PT} / 60`
 S=`expr ${PT} % 60`
 echo "Run Time: ${H}h ${M}m ${S}s"
-echo "======================================================"
+echo "================================================================================="
 exit 1

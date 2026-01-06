@@ -11,8 +11,9 @@ Description:
     Created: 20170731
     History: 20200130
     History: 20221122 (add --hifi-kinetics)
-    History: 20250924
-    - A wrapper script of ccs command powered by PacBio.
+    History: 20251223
+    - A wrapper of ccs command powered by PacBio.
+    - CCS reads were generated from subreads (<PacBio Sequel).
 Require:
     conda activate py38
     conda install pbccs -c bioconda
@@ -40,6 +41,7 @@ ccs=${HOME}/miniconda3/envs/py38/bin/ccs
 
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate py38
+#-------------------------------------------
 
 output_dir=${2}
 str_filename=${1##*/}                   #hogehoge.extendedFrags.fastq

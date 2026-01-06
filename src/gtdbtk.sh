@@ -15,11 +15,14 @@ Description
     History: 20230610 (update 2.3.0 with release214)
     History: 20240521 (update 2.4.0 with release220)
     History: 20250528 (update            release226, v2.4.1 was not work well in ES system)
-    History: 20250805
+    History: 20251223
+    - A wrapper of GTDB-Tk for taxonomic assignment of genomes.
     - https://github.com/Ecogenomics/GTDBTk
     - gtdb-tk takes a lot of memory space (typically <60 GB, ~880 GB in ES system).
-    - officially, 150 GB per threads are required by pplacer
+        - officially, 150 GB per threads are required by pplacer
     - outputdir: ../gtdbtk
+Install:
+    see -H option
 Usage:
     this.sh classify_wf          dir_pass [thread=6]   #for classify your MAGs
     this.sh de_novo_wf_bacteria  dir_pass [thread=6]
@@ -27,12 +30,11 @@ Usage:
     this.sh -H
     this.sh -T [dummy] [thread=6]
 Tips:
-    ./qsub_DDBJ.sh medium 10 20 20 ./gtdbtk.sh -T dummy 10
-
     ./gtdbtk.sh ../vamb_DSSMv0.2_concatenate/vamb_DSSMv0.2_concatenate/ 20
+    ./qsub_DDBJ.sh medium 10 20 20 ./gtdbtk.sh -T dummy 10
+    ./qsub_DDBJ.sh medium 20 8 20 ./gtdbtk.sh ../my_binning/P-MAGs_v0.1/ 20
     ./qsub_mem_da.sh 40 ./gtdbtk.sh ../binning/DSSMv0.2_metawrap 40
     ./qsub_medium.sh 20 ./gtdbtk.sh ../my_binning/P-MAGs_v0.1/ 20
-    ./qsub_DDBJ.sh medium 20 8 20 ./gtdbtk.sh ../my_binning/P-MAGs_v0.1/ 20
 ========================================================================================================================================
 EOF
     return 0
@@ -54,7 +56,7 @@ Install:
     #tensorflow
     #pip install tensorflow
 
-    #DB
+    #DB preparation
     #wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
     wget https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_package/full_package/gtdbtk_data.tar.gz
     tar xvzf gtdbtk_data.tar.gz
@@ -100,6 +102,7 @@ if [ ! -e ${output_dir} ]; then
     mkdir ${output_dir}
 fi
 
+#------------------------------------------------------------------
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate gtdbtk-2.4.0 
 #conda activate gtdbtk-2.4.1
@@ -107,6 +110,7 @@ conda activate gtdbtk-2.4.0
 #database=${HOME}/database/GTDB-Tk/release220/ ; DBversion="R220"
 database=${HOME}/database/GTDB-Tk/release226/ ; DBversion="R226"
 export GTDBTK_DATA_PATH=${database}
+#------------------------------------------------------------------
 
 #for DDBJ
 #module load tensorflow2-py36-cuda10.1-gcc/2.0.0

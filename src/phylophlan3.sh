@@ -13,10 +13,13 @@ Description:
     History: 20210612
     History: 20230924 (change to use conda environment)
     History: 20250203
+    - A wrapper of Phylophlan3 for phylogenetic analysis of prokaryotic genomes. 
     - Please be careful when run this script: Phylophlan3 will use huge machine power.
     - RAxML_bestTree.XXX.tre will be the final best tree.
     # - Qsub  unaveilable
     # - Nohup unaveilable
+Require:
+    conda environment (phylophlan)
 Usage:
     conda activate phylophlan
     this.sh gene/genome_dir fileFileType[prot/nucl] speed[accurate/fast] diversity[low/medium/high]  [thread=6]
@@ -25,7 +28,7 @@ Option:
                        Genome or Gene files are acceptable.
     fileFileType       prot  :protein
                        nucle :genome
-    speed              [accurate,fast]
+    speed              [accurate/fast]
     diversity          [low(~genus)/medium(order-class)/high(phylum-)]
     thread             int
 Install:
@@ -38,7 +41,7 @@ EOF
     return 0
 }   
 
-#init
+#----------------------------------------------------
 threads=6
 phylophlan_dir=../phylophlan
 phylophlan_config_dir=../phylophlan/configs
@@ -46,6 +49,7 @@ phylophlan_database=${HOME}/database/phylophlan
 
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate phylophlan
+#----------------------------------------------------
 
 if [ $# -lt 4 ]; then
     usage
@@ -137,7 +141,7 @@ done
 #python2 phylophlan.py  --cleanall
 #phylophlan --clean_all --diversity high
 
-echo "making command"
+echo "prepare running command"
 command="phylophlan -i ${tmp_input_dir} -o ${output_dir} \
                     -d phylophlan \
                     --diversity ${DiversityType} \

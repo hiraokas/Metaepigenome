@@ -7,8 +7,8 @@ Description:
     hiraokas@jamstec.go.jp
     Created:  20220629
     History:  20230704  # Accept both CheckM1 and CheckM2
-    History:  20250108
-    - This is a tool for extracting genome sequences from CheckM1/2 results.
+    History:  20251226
+    - This is a script for extracting genome sequences according to CheckM1/2 results.
     - Get middle- or high-quality genomes (i.e., completeness > 50%, contamination < 10%)
 Usage:
     $(basename ${0}) genome_dir checkm_result.tsv
@@ -25,14 +25,14 @@ fi
 input_genomeDir=${1}
 input_qualitytable=${2}
 
-prefix=` basename ${input_qualitytable} | rev | cut -f2-  -d "." | rev | cut -f2- -d "_"  ` 
+prefix=` basename ${input_qualitytable} | rev | cut -f2-  -d "." | rev | cut -f2- -d "_" ` 
 
-# detect CheckM1 or CheckM2
+# detect quality estimation tools: CheckM1 or CheckM2
 FirstWord=`head ${input_qualitytable} -n 1 | cut -f1 `
 echo ${FirstWord}
-if [ "${FirstWord}" == "Name"  ]; then
+if [ "${FirstWord}" == "Name" ]; then
     mode="CheckM2"
-elif [[ "${FirstWord}" == *CheckM*   ]] ; then
+elif [[ "${FirstWord}" == *CheckM* ]] ; then
     mode="CheckM1"
 fi
 
@@ -55,7 +55,7 @@ if [ "${mode}" == "CheckM1" ]; then
     cat ${input_qualitytable} | grep -v -e "INFO" -e "^--------" -e "Bin Id" | sed -e 's/  */\t/g'| while read line ; do
         count=`echo "$count+1" | bc`
         
-        # MC-2_S10_1.29            k__Archaea (UID2)              207         145           103         0    145    0    0    0   0       100.00           0.00               0.00
+        # MC-2_S10_1.29  k__Archaea (UID2)  207  145  103  0    145    0    0    0   0  100.00  0.00  0.00
         #echo $line
 
         first_chara=`echo "${line}" | cut -c1`
@@ -63,7 +63,7 @@ if [ "${mode}" == "CheckM1" ]; then
             continue
         fi
 
-        #Bin Id                     Marker lineage            # genomes   # markers   # marker sets    0     1     2    3    4   5+   Completeness   Contamination   Strain heterogeneity
+        #Bin Id  Marker lineage  # genomes   # markers   # marker sets    0     1     2    3    4   5+   Completeness   Contamination   Strain heterogeneity
         BinID=`         echo "${line}" | cut -f1`
         completeness=`  echo "${line}" | cut -f13`
         contamination=` echo "${line}" | cut -f14`
@@ -87,7 +87,6 @@ elif [ "${mode}" == "CheckM2" ]; then
         BinID=`         echo "${line}" | cut -f1`
         completeness=`  echo "${line}" | cut -f2`
         contamination=` echo "${line}" | cut -f3`
-     
         echo "Completeness: ${completeness}, Contamination: ${contamination}"
 
         #quality check

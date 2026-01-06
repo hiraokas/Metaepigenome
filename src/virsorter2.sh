@@ -12,7 +12,11 @@ Description:
     History: 20210204
     History: 20230526  #virsorter=2.2.4
     History: 20250606 (re-install)
+    History: 20251228
+    - Viral genome prediction from genomic data using VirSorter
     - See: https://github.com/jiarong/VirSorter2
+Require:
+    conda environment (virsorter2)
 Usage:
     conda activate virsorter2
     ./virsorter2.sh conting.fasta [thread=30]
@@ -83,6 +87,7 @@ EOF
     return 0
 }   
 
+#----------------------------------------------------------------------------
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 #conda activate virsorter2
 conda activate vs2
@@ -98,6 +103,7 @@ Output_dir="../virsorter2/"
 database=${HOME}/database/VirSorter2
 threads=30
 #contig_min=1000
+#----------------------------------------------------------------------------
 
 if [ $# -lt 1 ]; then
     echo "Error: Please set two options; 'database path' and 'query file'"
@@ -122,7 +128,7 @@ echo "Current dir: " `pwd`
 which virsorter
 which snakemake
 echo "statistics: snakemake.stat.tsv"
-cat snakemake.stat.tsv
+cat  snakemake.stat.tsv
 echo ""
 echo $*
 echo "Thread: ${2}"
@@ -130,16 +136,13 @@ echo "==========================================================================
 
 #-------------------------------------------------------------
 #run virsorter
-#min length is according to the original paper
+# min length is according to the original paper
 # --use-conda-off   option should be harmfull (20230608)
 #-------------------------------------------------------------
 virsorter_Path=`which virsorter`
-#virsorter run all -w ../virsorter2//hifiasmMeta_hifi_M362.hifi.contig.out -i ../assembly/hifiasmMeta_hifi_M362.hifi.contig.fa --cores 6 --min-length 3000 --verbose -d /S/home00/G3516/p0783/database/VirSorter2
-#virsorter run -w test.out -i test.fa --min-length 1500 -j 4 all
-command="virsorter run all -w ${output_path} -i ${fasta} --cores ${threads}  --min-length 3000  --verbose -d ${database}  --use-conda-off" # --forceall  --profile ${snakemake_profile}  --tmpdir tmp  --profile cluster #-d ${database} 
+command="virsorter run all -w ${output_path} -i ${fasta} --cores ${threads} --min-length 3000 --verbose -d ${database} --use-conda-off" # --forceall  --profile ${snakemake_profile}  --tmpdir tmp  --profile cluster #-d ${database} 
 echo ${command}
 ${command}
-#     virsorter run all -w ${output_path} -i ${fasta} --cores ${threads}  --min-length 3000  --verbose -d ${database} #--tmpdir tmp  --profile cluster #-d ${database} --use-conda-off 
 
 #clean up
 #rm ${output_path}/iter-0 -r

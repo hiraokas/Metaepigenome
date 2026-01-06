@@ -14,24 +14,26 @@ Description:
     History: 20231005 (update kaiju v1.9.2 & nrEuk2023-05-10)
     History: 20231005
     History: 20251008 (change output paths, add database refseq_nr2024-08-14
+    History: 20251223
+    - A wrapper of Kaiju for taxonomic assignment of metagenomic sequencing reads.
     - thread:16
-    - Kaiju taked a lot of memory space: >150Gb for NR_euk database.
+    - Kaiju takes a lot of memory space: >150Gb for NR_euk database.
 Database:
     - NrEuk
     - GORG (marine single-cell derived datasaet)
 Usage:
     this.sh  fastA/Q  [RefSeqNr,NrEuk,GORG]  [threads=16]
-
--------------------------------------------------------
-Make kaiju database
-see: https://github.com/bioinformatics-centre/kaiju
-This process takes a lot of memory space!  (>220 GB)
--------------------------------------------------------
+Database Preparation:
+    -------------------------------------------------------
+    - see: https://github.com/bioinformatics-centre/kaiju
+    - This process takes a lot of memory space!  (>220 GB)
+    -------------------------------------------------------
     cd ${HOME}/database
     mkdir kaiju
     cd kaiju
     ${HOME}/workspace/software/kaiju-v1.8.2-linux-x86_64-static/kaiju-makedb -s nr_euk
-- or
+
+    - or
     ./qsub_epyc.sh 1 wget https://kaiju-idx.s3.eu-central-1.amazonaws.com/2023/kaiju_db_nr_euk_2023-05-10.tgz --no-check-certificate
 ============================================================================================================================================================
 EOF
@@ -169,9 +171,7 @@ if [ ! -e ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv ]; then
     ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r species -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.species.tsv -i ${OUTPUT_FILE}
 
     #domain
-     cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.FULL.tsv   |cut -f-2 -d ";" |sed -e "s/cellular organisms; //g" |cut -f-1 -d ";" > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv
-    #cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv |cut -f4 |sort |uniq -c |awk '{print "dummy\t0\t" $1 "\t0\t" $2}'     > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.domain.tsv
-
+    cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.FULL.tsv | cut -f-2 -d ";" | sed -e "s/cellular organisms; //g" | cut -f-1 -d ";" > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv
 fi
 
 echo "all done"

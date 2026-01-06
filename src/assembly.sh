@@ -6,21 +6,22 @@ function usage() {
     cat <<EOF
 ========================================================================================================================================
 Description:
-    $(basename ${0}) is a script for (meta)genome assenbly.
     Satoshi Hiraoka
     hiraokas@jamstec.go.jp
     Created: <2018
     History:  20230329 (update hifiasm 0.19.3)
     History:  20230415 (update hifiasm 0.19.4)
     History:  20250411 (add continue option in SPAdes)
+    History:  20251223
+    - This is a script for (meta)genome assembly.
 Usage:
-    $(basename ${0}) -i [filename] -t [software]
+    ./assembly.sh -i [filename] -t [software]
 Required:
     ------------------------------------------------------------------------------------------------------------------------
-    Single-end sequence:
+    Single-end sequence (Illumina, PacBio, etc.) :
     -i      Input filename; single-end mode (FASTQ; .fq) (!NOT officially SUPPRTED BY metaSPAdes when using Illumina) ( Not supported by MetaPlatanus!)
     
-    Illumina sequence: (please keep this option order (1~6,0,c))***
+    Short-read sequence (Illumina, AVITI, etc.) : (please keep this option order (1~6,0,c))***
     -1, -2  Input filename; pair-end mode           (FASTQ; .fq)      (SPAdes, Unicycler, MetaPlatanus, trinity)
     -0      Input filename; merged pair-end mode    (FASTQ; .fq)      (-1, -2 option is required) (SPAdes)
     -3, -4  Input filename; mait-pair mode          (FASTQ; .fq)      (-1, -2 option is required) (SPAdes)
@@ -42,6 +43,7 @@ Required:
     -c      Continue running from last available check point (megahit, SPAdes)
     -g      Genomic data, i.e. not metagenomic mode          (SPAdes)
     -r      Transcriptome mode, i.e., rnaSPAdes              (SPAdes)
+
 Option:
     -T      THREADS (default: 6; 0: use all threads)
     -M      Memory space (default: 250)
@@ -57,10 +59,7 @@ Currently unaveilable:
 EOF
 }
 
-usage_exit() {
-	usage
-	exit 1
-}
+usage_exit() { 	usage; 	exit 1; }
 
 if [ $# -le 0 ]; then
 	usage_exit
@@ -334,12 +333,12 @@ case ${TOOL_TYPE} in
             elif [ ${assembly_type} = "TrustedContigs_PairedEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_TC-PE_${FILENAME_C1}-${BASE_FILENAME_P1}
                 ${python} ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --trusted-contigs ${INPUT_FILE_C1}   \
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}    ${option_continue} 
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue} 
             
             elif [ ${assembly_type} = "TrustedContigs_MatePair" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_TC-MP_${FILENAME_C1}-${BASE_FILENAME_P3}
                 ${python} ${SPAdes} --hqmp-1 1 ${INPUT_FILE_P3} --hqmp-2 1  ${INPUT_FILE_P4}  --trusted-contigs ${INPUT_FILE_C1}  --hqmp-or 1 rf \
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}   ${option_continue}  
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue}  
             
             elif [ ${assembly_type} = "PairEnd_PseudoPairEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_PE-PPE_${BASE_FILENAME_P1}-${FILENAME_P8}
@@ -363,7 +362,6 @@ case ${TOOL_TYPE} in
             #make link for final contigs
             #cd ${output_dir}
             #ln -s 
-
 		;;
 
     #===========================
@@ -378,8 +376,7 @@ case ${TOOL_TYPE} in
             fi
 
             spades.py -t ${THREADS} -k auto --careful -1 ${INPUT_FILE_P1} -2 ${INPUT_FILE_P2} --nanopore ${INPUT_FILE} \
-            -o ${output_dir}/SPAdes_${BASE_FILENAME} ${basic_option} -m ${_MEMORY} 
-
+                        -o ${output_dir}/SPAdes_${BASE_FILENAME} ${basic_option} -m ${_MEMORY} 
         ;;
 
     #===========================
@@ -399,7 +396,6 @@ case ${TOOL_TYPE} in
             elif [ ${assembly_type} = "double"  ]; then
                 ${unicycler} -1 ${INPUT_FILE_P1} -2 ${INPUT_FILE_P2} -o ${output_dir}/Unicycler_${FILENAME_P1} --no_pilon -t ${THREADS}
             fi
-
         ;;
 
     #===========================
@@ -463,7 +459,6 @@ case ${TOOL_TYPE} in
             rm -r ${work_dir}/unitigging
             rm -r ${work_dir}/${prefix_file}.seqStore
             rm -r ${work_dir}/${prefix_file}.unassembled.fasta
-
 		;;
 
     #===========================
@@ -773,7 +768,6 @@ EOF
 
             #make link
             ln -s ${prefix_file}.contig.fa ${prefix_dir}.fa 
-
         ;;
 
     #===========================
@@ -842,7 +836,6 @@ EOF
 
             #clean up
             rm ${prefix_dir}/[0-4]0-* -r
-
         ;;     
 
     #===========================
@@ -880,7 +873,6 @@ EOF
     #===========================
     "trinity")
     #===========================
-
             source ${HOME}/miniconda3/etc/profile.d/conda.sh
             conda activate py38
             
@@ -899,10 +891,6 @@ EOF
             elif [ ${assembly_type} = "double"  ]; then
                 Trinity --seqType fq --left ${INPUT_FILE_P1} --right ${INPUT_FILE_P2}  --CPU ${THREADS} --max_memory ${_MEMORY}G --full_cleanup --output ${prefix}
             fi
-
-
-            #${flye} ${SEQ_TYPE} ${INPUT_FILE} --genome-size ${ESTIMATED_MODEENOME_SIZE} -t ${THREADS} --out-dir ${prefix_dir} --meta #  --asm-coverage 50
-            
         ;;     
     
     #===========================

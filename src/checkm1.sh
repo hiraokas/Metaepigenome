@@ -4,17 +4,17 @@ function usage() {
     cat <<"EOF"
 ========================================================================================================================================
 Description:
-    for assembled genome
-    created: 20171028
+    Satoshi Hiraoka
+    hiraokas@jamstec.go.jp
+    Created: 20171028
     History: 20200109
-    History: 20230524
-Note:
-	threads=20
-    CheckM maybe takes a lot of memory (>100G in 20 threads with >400 bins)
+    History: 20251223
+    - A wrapper of CheckM1 for quality check of genomes.
+    - CheckM maybe takes a lot of memory (>100G in 20 threads with >400 bins)
 Usage:
     conda activate checkm1
     ./checkm1.sh bins_dir [threads=20]
-    ./checkm1.sh install   (For help)
+    ./checkm1.sh install   (print help page)
 Tips:
     ./qsub_mem_da.sh 40 ./checkm.sh ../binning/vamb_DSSMv0.2_concatenate/vamb_DSSMv0.2_concatenate/ 20
 ========================================================================================================================================
@@ -22,7 +22,7 @@ EOF
 	exit 1
 }
 
-function usage_H() {
+function usage_install() {
     cat <<"EOF"
 ========================================================================================================================================
 -------------------------------
@@ -45,7 +45,6 @@ EOF
     exit 1
 }
 
-
 usage_exit() {
     usage
     exit 1
@@ -56,54 +55,53 @@ if [ $# -le 0 ]; then
 fi
 
 if [ ${1} == "install" ]; then
-    usage
+    usage_install
     exit 1
 fi
 
-
 start_time=`date +%s`
+
+#----------------------------------------------------------
 threads=20
-
 output_dir="../CheckM1"
-
-
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate checkm1
+#----------------------------------------------------------
 
+# Log
 echo "===================================================================="
 echo $(which hmmsearch)
 echo $(which prodigal)
 echo $(which checkm)
 echo "===================================================================="
 
-
 if [ ! -e ${output_dir} ]; then
     mkdir ${output_dir}
 fi
-
 input_dir=${1}
+echo "Input dir: ${input_dir}"
 
 if   [ $# -gt 1 ] ; then
     threads=${2}
     echo "Threads: ${2}"
 fi
 
-#make output filename
-last_char=`echo ${input_dir}|rev|cut -c1|rev`
+# If the last character of the input filename is "/", delete it.
+last_char=`echo ${input_dir}| rev | cut -c1 | rev`
 if [ ${last_char} = "/" ]; then
-    input_dir=`echo ${input_dir}|rev|cut -c2-|rev`
+    input_dir=`echo ${input_dir} | rev | cut -c2- | rev`
 fi
-echo "Input dir: ${input_dir}"
 
-str_filename=${input_dir##*/}
-#str_filename_we=${str_filename%.*}  #input is dir, not file
+# get dir name for output file prefix
+output_prefix=${input_dir##*/}
 
-temp_output_log="${output_dir}/${str_filename}_log.tsv"
-temp_output_result="${output_dir}/${str_filename}_result.tsv"
-output_maindir="    ${output_dir}/${str_filename}"
+# output files
+temp_output_log="${output_dir}/${output_prefix}_log.tsv"
+temp_output_result="${output_dir}/${output_prefix}_result.tsv"
+output_maindir="    ${output_dir}/${output_prefix}"
 output_workdir="    ${output_maindir}/workdir"
 output_log="        ${output_maindir}/log.tsv"
-output_result="     ${output_maindir}/checkm1_${str_filename}.tsv"
+output_result="     ${output_maindir}/checkm1_${output_prefix}.tsv"
 
 if [ -e ${output_maindir} ]; then
     rm ${output_maindir} -r

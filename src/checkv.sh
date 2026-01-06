@@ -10,14 +10,13 @@ Description:
     created: 20210131
     History: 20210131
     History: 20230725 (checkv database v1.5)
-    History: 20230919
-    - Script used for genomes, contigs, HiFi reads, etc.
+    History: 20251226
+    - Predict quality of viral genomes.
+    - Script can be used for genomes, contigs, HiFi reads, etc.
 Usage:
     conda activate py38
-    qsub_6.sh this.sh genome.fasta [thread=6]
-
-----------------------------------------
-Before usage:
+    ./checkv.sh genome.fasta [thread=6]
+Install:
     - Install and download database
     conda create -n checkv -c conda-forge -c bioconda checkv
     conda activate checkv
@@ -27,11 +26,13 @@ EOF
 }
 
 start_time=`date +%s`
-threads=6
 
+#----------------------------------------------------------
+threads=6
 output_dir="../CheckV"
 database="${HOME}/database/checkv/checkv-db-v1.5"
 checkv="checkv"
+#----------------------------------------------------------
 
 if [ ! -e ${output_dir} ]; then
     mkdir ${output_dir}
@@ -63,9 +64,12 @@ output_maindir=${output_dir}/${FILENAME}
 #checkv repeats         ${input_file} ${output_maindir} -d ${database}
 #checkv quality_summary ${input_file} ${output_maindir} -d ${database}
 
-#all run
+#----------------------------------------------------------
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate checkv
+#----------------------------------------------------------
+
+#all run
 ${checkv} end_to_end ${input_file} ${output_maindir} -d ${database} -t ${threads}
 
 #remove tmp file

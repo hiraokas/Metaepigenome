@@ -8,20 +8,20 @@ Description
     hiraokas@jamstec.go.jp
     Created: 20220903
     History: 20240924 #database update: 2023Aug
-    History: 20250430
-    - Script for iPHoP
-    - This workflow conposed with multiple tools. Please check each log files (XXX.log under the output dir) when some troubles occured.
+    History: 20251223
+    - A wrapper of iPHoP to predict host-phage interaction using genomic information. 
+    - https://bitbucket.org/srouxjgi/iphop/src/main/
+    - This workflow conposed with multiple tools. Please check log files (XXX.log under the output dir) carefully when some troubles occured.
 Require
-    threads = 10
+    conda envirpnment (iphop)
 Usage:
     this.sh viral.fasta [threads=10] [database_path]
-output_dir
+Output dir:
     ../HostPrediction/
 Tips:
     for f in ../ViralGenome/2_V-MAGs_hifiasm-meta-v0.2_rename/V-MAGs_S-BL*.fa; do ./qsub_short.sh  8 ./iPHoP.sh ${f}; done
     ./iPHoP.sh ../DSSM/DSSMv0.2/DSSMv0.2_V-MAGs.fa 
 Install:
-
     #----------------------------------
     #manual install 2024/2025
     #----------------------------------
@@ -111,9 +111,11 @@ EOF
     return 0
 }   
 
+#---------------------------------------------------------------------
 database=${HOME}/database/iPHoP/iPHoP_2023Aug23/Aug_2023_pub_rw
 output_dir=../HostPrediction/
 threads=10
+#---------------------------------------------------------------------
 
 if [ $# -lt 1 ]; then
     echo "Error: Please set file(s)"
@@ -127,7 +129,6 @@ fi
 
 if [ $# -gt 2 ]; then
     database=${3}
-    echo "database: ${database}"
 fi
 
 FILENAME=${1##*/}
@@ -137,6 +138,7 @@ BASE_DBNAME=${DBNAME%.*}
 
 OUTPUT_path=${output_dir}/iPHoP_${DBNAME}_${BASE_FILENAME}
 
+#---------------------------------------------------------------------
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
 conda activate iphop 
 
@@ -144,7 +146,9 @@ conda activate iphop
 export PATH=${HOME}/local/bin:$PATH
 export LD_LIBRARY_PATH=${HOME}/local/lib:${HOME}/anaconda3-2/lib:$LD_LIBRARY_PATH
 export PERL5LIB=${HOME}/miniconda3/envs/iphop/lib/perl5/site_perl/5.22.0/:${PERL5LIB}
+#---------------------------------------------------------------------
 
+#log
 echo "============================================================"
 echo "Threads:         ${threads}"
 echo "Database:        ${database}"
@@ -165,7 +169,6 @@ fi
 iphop predict --fa_file ${1} --db_dir ${database} --out_dir ${OUTPUT_path} --num_threads ${threads} --debug
 
 #rm -r ${OUTPUT_path}/Wdir
-
 echo "Output:  ${OUTPUT_path}"
 echo "Done."
 

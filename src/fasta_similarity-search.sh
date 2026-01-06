@@ -16,14 +16,15 @@ Description:
     History: 20240301 (REBASE 20240301)
     History: 20241007 (dbCAN v13)
     History: 20251021 (dbCAN v14)
-    History: 20251021
-    - This script is for Blast search and annotation against protein sequence database.
+    History: 20251223
+    - This script is a wrapper for sequence similarity search and annotation against protein sequence database.
 Usage:
     $(basename ${0}) [command] [<options>]
 Required:
     -t  database type 
     		[sprot, nog, REBASE, Pfam, dbCAN, KEGG, NR...]
-    		[PET, PET_PETase, PET_Cbotu, lasso_cyc, NCyc]
+            [NCyc, SCyc, ...]
+    		(abort)[PET, PET_PETase, PET_Cbotu, lasso_cyc]
     -d  specific_database (NOT WORK)
     -i  fasta file (.fna or .faa(hmmer) )
     -b  blast output file
@@ -36,7 +37,7 @@ Options:
     -h  Print this
     -H  Print hint for making database
 TIPS:
-    ./blast_annotation.sh -t nog -i ../genecall/B01.fna
+    ./blast_annotation.sh  -t  nog  -i  ../genecall/B01.fna  -T  6
 ========================================================================================================================================
 EOF
 }
@@ -44,7 +45,7 @@ EOF
 function usage2() {
     cat <<EOF
 ========================================================================================================================================
-TIPS: Making databases 
+    Preparation 
 ========================================================================================================================================
 Database:
     nr:
@@ -66,7 +67,7 @@ Tools:
         makeblastdb -dbtype prot -in XXX.fasta -parse_seqids -gi_mask
     diamond:
         diamond makedb --in reference.fasta -d reference --threads 4
-        # this will produce "reference.dmnd" file
+        # this will generate "reference.dmnd" file
     mmseq2:
         mmseqs createdb examples/DB.fasta targetDB
         mmseqs createindex targetDB tmp --threads 20
@@ -120,11 +121,9 @@ REBASE_database_diamond="${HOME}/database/REBASE/All_REBASE_Gold_Standards_Prote
 
 #4
 Pfam_id=4
-Pfam_name="Pfamv32"
-Pfam_database="        ${HOME}/database/Pfam_32.0/Pfam-A.fasta"
-#Pfam_database_hmm="    ${HOME}/database/PfamA_33.1/Pfam-A.hmm"
-#Pfam_database_hmm="    ${HOME}/database/Pfam_35.0/Pfam-A.hmm.gz"
-#Pfam_database_hhsuite="${HOME}/database/Pfam_32.0/pfam"
+Pfam_name="Pfamv33.1"
+Pfam_database="        ${HOME}/database/Pfam_33.1/Pfam-A.fasta"
+Pfam_database_hmm="    ${HOME}/database/PfamA_33.1/Pfam-A.hmm"
 Pfam_annotation="      ${HOME}/database/Pfam_33.1/Pfam-A.clans.tsv"
 
 #5
@@ -146,29 +145,16 @@ NR_name="NRv20210927"
 NR_database="          ${HOME}/database/nr/nr_20210927/nr"
 NR_database_diamond="  ${HOME}/database/nr/nr_20210927/nr.dmnd"
 
-#10
-PET_id=10
-PET_name="PET"
-PET_database="${HOME}/workspace/_PETase/reference_PETase_sequence/reference_PETase2.faa"
-
-PET1_id=11
-PET1_name="PET_PETase"
-PET1_database="${HOME}/workspace/_PETase/reference_PETase_sequence/reference_Cut.faa"
-
-PET2_id=12
-PET2_name="PET_Cbotu"
-PET2_database="${HOME}/workspace/_PETase/reference_PETase_sequence/reference_Cbotu.faa"
-
-
-lasso_cyc_id=20
-lasso_cyc_name="lasso_cyc"
-lasso_cyc_database="${HOME}/workspace/_lasso/lasso_sequence/uniprot-Lasso+peptide+isopeptide+bond-forming+cyclase.fasta"
-
 NCyc_id=30
 NCyc_name="NCyc"
 NCyc_database="        ${HOME}/database/NCyc-master/data/NCyc_100.faa"
 NCyc_database_ghostz=" ${HOME}/database/NCyc-master/data/NCyc_100.faa_ghostz"
 NCyc_database_diamond="${HOME}/database/NCyc-master/data/NCyc_100.dmnd"
+
+SCyc_id=31
+SCyc_name="SCyc"
+SCyc_database="        ${HOME}/database/SCyc-master/data/SCyc_100.faa"
+SCyc_database_diamond="${HOME}/database/SCyc-master/data/SCyc_100.dmnd"
 
 #tool
 #blast=""
@@ -244,90 +230,84 @@ if [ -z ${SEARCHTOOL} ]; then
 fi
 
 #echo ${database_type}
-if [ "${database_type}" = "sprot" ] ; then 	db_name=${sprot_name}; 	db_type=${sprot_id}
-	if   [ "${SEARCHTOOL}" = "blast"     ] ; then	database=${sprot_database}
-	elif [ "${SEARCHTOOL}" = "rapsearch" ] ; then	database=${sprot_database_rap}
-	elif [ "${SEARCHTOOL}" = "ghostz"    ] ; then	database=${sprot_database_ghostz}
-	elif [ "${SEARCHTOOL}" = "paladin"   ] ; then	database=${sprot_database_paladin}
-    elif [ "${SEARCHTOOL}" = "mmseq2"    ] ; then   database=${sprot_database_mmseq2}
+if [ "${database_type}" = "sprot"          ] ; then db_name=${sprot_name}; 	db_type=${sprot_id}
+	if   [ "${SEARCHTOOL}" = "blast"       ] ; then	database=${sprot_database}
+	elif [ "${SEARCHTOOL}" = "rapsearch"   ] ; then	database=${sprot_database_rap}
+	elif [ "${SEARCHTOOL}" = "ghostz"      ] ; then	database=${sprot_database_ghostz}
+	elif [ "${SEARCHTOOL}" = "paladin"     ] ; then	database=${sprot_database_paladin}
+    elif [ "${SEARCHTOOL}" = "mmseq2"      ] ; then database=${sprot_database_mmseq2}
 	else
 		echo "Illegal search tool name"
 		usage_exit
 		exit 1
 	fi
-elif [ "${database_type}" = "nog"  ] ; then	 db_name=${NOG_name}; 	db_type=${NOG_id}
-	if   [ "${SEARCHTOOL}" = "blast"     ] ;   then	database=${NOG_database}
-	elif [ "${SEARCHTOOL}" = "rapsearch" ] ;   then	database=${NOG_database_rap}
-	elif [ "${SEARCHTOOL}" = "ghostz"    ] ;   then	database=${NOG_database_ghostz}
-    elif [ "${SEARCHTOOL}" = "diamond"   ] ;   then database=${NOG_database_diamond}
+elif [ "${database_type}" = "nog"          ] ; then	db_name=${NOG_name}; 	db_type=${NOG_id}
+	if   [ "${SEARCHTOOL}" = "blast"       ] ; then	database=${NOG_database}
+	elif [ "${SEARCHTOOL}" = "rapsearch"   ] ; then	database=${NOG_database_rap}
+	elif [ "${SEARCHTOOL}" = "ghostz"      ] ; then	database=${NOG_database_ghostz}
+    elif [ "${SEARCHTOOL}" = "diamond"     ] ; then database=${NOG_database_diamond}
     elif [ "${SEARCHTOOL}" = "diamond-c50" ] ; then database=${NOG_database_diamond}
-	elif [ "${SEARCHTOOL}" = "paladin"   ] ;   then	database=${NOG_database_paladin}
+	elif [ "${SEARCHTOOL}" = "paladin"     ] ; then	database=${NOG_database_paladin}
 	else
 		echo "Illegal search tool name"
 		usage_exit
 		exit 1
 	fi
-elif [ "${database_type}" = "REBASE"   ] ; then  db_name=${REBASE_name};     db_type=${REBASE_id}
-    if [   "${SEARCHTOOL}" = "blast"   ] ; then  database=${REBASE_database}
-    elif [ "${SEARCHTOOL}" = "diamond" ] ; then  database=${REBASE_database_diamond}
+elif [ "${database_type}" = "REBASE"       ] ; then db_name=${REBASE_name};     db_type=${REBASE_id}
+    if [   "${SEARCHTOOL}" = "blast"       ] ; then database=${REBASE_database}
+    elif [ "${SEARCHTOOL}" = "diamond"     ] ; then database=${REBASE_database_diamond}
     else
         echo "Illegal search tool name"
         usage_exit
         exit 1
     fi
-elif [ "${database_type}" = "Pfam"     ] ; then  db_name=${Pfam_name};    db_type=${Pfam_id}
-    if   [ "${SEARCHTOOL}" = "ghostz"  ]; then  database=${Pfam_database}
-    elif [ "${SEARCHTOOL}" = "hmmer"   ]; then  database=${Pfam_database_hmm}
-    elif [ "${SEARCHTOOL}" = "hhblits" ]; then  database=${Pfam_database_hhsuite}
+elif [ "${database_type}" = "Pfam"     ]; then db_name=${Pfam_name};    db_type=${Pfam_id}
+    if   [ "${SEARCHTOOL}" = "ghostz"  ]; then database=${Pfam_database}
+    elif [ "${SEARCHTOOL}" = "hmmer"   ]; then database=${Pfam_database_hmm}
+    elif [ "${SEARCHTOOL}" = "hhblits" ]; then database=${Pfam_database_hhsuite}
     else
         echo "Illegal search tool name"
         usage_exit
         exit 1
     fi
-elif [ "${database_type}" = "dbCAN"  ]  ; then  db_name=${dbCAN_name};     db_type=${dbCAN_id}
-    if [ "${SEARCHTOOL}" = "hmmer" ]    ; then       database=${dbCAN_database_hmm}
-    elif [ "${SEARCHTOOL}" = "hhblits" ]; then       database=${dbCAN_database_hhsuite}
+elif [ "${database_type}" = "dbCAN"    ]; then db_name=${dbCAN_name};     db_type=${dbCAN_id}
+    if   [ "${SEARCHTOOL}" = "hmmer"   ]; then database=${dbCAN_database_hmm}
+    elif [ "${SEARCHTOOL}" = "hhblits" ]; then database=${dbCAN_database_hhsuite}
     else
         echo "Illegal search tool name"
         usage_exit
         exit 1
     fi
-elif [ "${database_type}" = "KEGG"  ] ;    then  db_name=${KEGG_name};    db_type=${KEGG_id}
-    if   [ "${SEARCHTOOL}" = "blast"   ] ; then    database=${KEGG_database}
-    elif [ "${SEARCHTOOL}" = "ghostz"  ] ; then    database=${KEGG_database_ghostz}
-    elif [ "${SEARCHTOOL}" = "diamond" ] ; then    database=${KEGG_database_diamond}
+elif [ "${database_type}" = "KEGG"         ]; then db_name=${KEGG_name};    db_type=${KEGG_id}
+    if   [ "${SEARCHTOOL}" = "blast"       ]; then database=${KEGG_database}
+    elif [ "${SEARCHTOOL}" = "ghostz"      ]; then database=${KEGG_database_ghostz}
+    elif [ "${SEARCHTOOL}" = "diamond"     ]; then database=${KEGG_database_diamond}
     elif [ "${SEARCHTOOL}" = "diamond-c50" ]; then database=${KEGG_database_diamond}
-    elif [ "${SEARCHTOOL}" = "mmseq2"  ] ; then    database=${KEGG_database_mmseq2}
+    elif [ "${SEARCHTOOL}" = "mmseq2"      ]; then database=${KEGG_database_mmseq2}
     else
         echo "Illegal search tool name"
         usage_exit
         exit 1
     fi
-elif [ "${database_type}" = "NR"  ] ; then  db_name=${NR_name};    db_type=${NR_id}
-    if   [ "${SEARCHTOOL}" = "diamond"  ] ; then    database=${NR_database_diamond}
-    elif [ "${SEARCHTOOL}" = "diamond-c50" ]; then  database=${NR_database_diamond}
+elif [ "${database_type}" = "NR"           ]; then db_name=${NR_name};    db_type=${NR_id}
+    if   [ "${SEARCHTOOL}" = "diamond"     ]; then database=${NR_database_diamond}
+    elif [ "${SEARCHTOOL}" = "diamond-c50" ]; then database=${NR_database_diamond}
     else
         echo "Illegal search tool name"
         usage_exit
         exit 1
     fi
-elif [ "${database_type}" = "PET"  ] ; then         db_name=${PET_name};          db_type=${PET_id}
-    if [ "${SEARCHTOOL}"  = "blast" ] ; then        database=${PET_database}
+elif [ "${database_type}"  = "NCyc"        ]; then db_name=${NCyc_name};         db_type=${NCyc_id}
+    if   [ "${SEARCHTOOL}" = "blast"       ]; then database=${NCyc_database}
+    elif [ "${SEARCHTOOL}" = "ghostz"      ]; then database=${NCyc_database_ghostz}
+    elif [ "${SEARCHTOOL}" = "diamond"     ]; then database=${NCyc_database_diamond}
+    elif [ "${SEARCHTOOL}" = "diamond-c50" ]; then database=${NCyc_database_diamond}
     fi
-elif [ "${database_type}" = "PET_PETase"  ] ; then  db_name=${PET1_name};         db_type=${PET1_id}
-    if [ "${SEARCHTOOL}"  = "blast" ] ; then        database=${PET1_database}
-    fi
-elif [ "${database_type}" = "PET_Cbotu"  ] ; then   db_name=${PET2_name};         db_type=${PET2_id}
-    if [ "${SEARCHTOOL}"  = "blast" ] ; then        database=${PET2_database}
-    fi
-elif [ "${database_type}" = "lasso_cyc"  ] ; then   db_name=${lasso_cyc_name};    db_type=${lasso_cyc_id}
-    if [ "${SEARCHTOOL}"  = "blast" ] ; then        database=${lasso_cyc_database}
-    fi
-elif [ "${database_type}"  = "NCyc"  ]  ; then      db_name=${NCyc_name};         db_type=${NCyc_id}
-    if   [ "${SEARCHTOOL}" = "blast" ]  ; then      database=${NCyc_database}
-    elif [ "${SEARCHTOOL}" = "ghostz" ] ; then      database=${NCyc_database_ghostz}
-    elif [ "${SEARCHTOOL}" = "diamond" ]; then      database=${NCyc_database_diamond}
-    elif [ "${SEARCHTOOL}" = "diamond-c50" ]; then  database=${NCyc_database_diamond}
+elif [ "${database_type}"  = "SCyc"        ]; then db_name=${SCyc_name};         db_type=${SCyc_id}
+    if   [ "${SEARCHTOOL}" = "blast"       ]; then database=${SCyc_database}
+    elif [ "${SEARCHTOOL}" = "ghostz"      ]; then database=${SCyc_database_ghostz}
+    elif [ "${SEARCHTOOL}" = "diamond"     ]; then database=${SCyc_database_diamond}
+    elif [ "${SEARCHTOOL}" = "diamond-c50" ]; then database=${SCyc_database_diamond}
     fi
 else
 	echo "Illegal database name"
@@ -341,22 +321,21 @@ echo "database path : ${database}"
 echo "tool          : ${SEARCHTOOL}"
 echo "======================================================================="
 
-
 #check database existence
 #pending
 
-
-output_blast_base=${OutputDir}/${SEARCHTOOL}_${file_basename}_${db_name}
-output_blast_set=${output_blast_base}.tsv
-output_blast_real=${output_blast_set}
-output_blast_run=${output_blast_set}.NowRunning
+# Set output filenames
+output_prefix=${OutputDir}/${SEARCHTOOL}_${file_basename}_${db_name}
+output_path=${output_prefix}.tsv
+output_tmpRunning=${output_path}.NowRunning
 output_annotation=${OutputDir}/${SEARCHTOOL}Annotation_${file_basename}_${db_name}.tsv
 
+# make output dir
 if [ ! -e ${OutputDir} ]; then
     mkdir ${OutputDir}
 fi
 
-#check query file format
+# check query file format
 EXT=${QUERY_FILE##*.}  # query file format
 if [ ${EXT} = "fa" ] || [ ${EXT} = "fna" ] || [ ${EXT} = "fasta" ]; then
     QUERY_FILE_TYPE="DNA"
@@ -364,81 +343,71 @@ else
     QUERY_FILE_TYPE="PROTEIN"
 fi
 
-#search
+# similarity search
+echo "Search Tool: ${SEARCHTOOL}"
 if [ ${FLAG_A} = 0 ] ; then
 	if [ "${SEARCHTOOL}" = "blast" ] ; then
-		echo "blast search..."
-        #check query file format
+        #check query file type [nucleic/amino acids]
         if [ ${QUERY_FILE_TYPE} = "DNA" ]; then
             blast="~/local/bin/blastx -query_gencode 11"
         else
             blast="~/local/bin/blastp"
         fi
 
-        touch ${output_blast_run}
-		command="${blast} -db ${database} -query ${QUERY_FILE} -outfmt 6 -max_target_seqs 1 -evalue 1e-5 -num_threads ${THREADS}  > ${output_blast_set}"  #-num_alignments 1 
+        touch ${output_tmpRunning}
+		command="${blast} -db ${database} -query ${QUERY_FILE} -outfmt 6 -max_target_seqs 1 -evalue 1e-5 -num_threads ${THREADS} > ${output_path}"  #-num_alignments 1 
 	    echo ${command}
         eval ${command}
-        rm  ${output_blast_run}
+        rm  ${output_tmpRunning}
 
     elif [ "${SEARCHTOOL}" = "rapsearch" ] ; then
-		echo "rapsearch search..."
-		command="${rapsearch} -q ${QUERY_FILE} -d ${database} -o ${output_blast_set} -z ${THREADS} -v 1 -b 0 -e -5/0.00001"
+		command="${rapsearch} -q ${QUERY_FILE} -d ${database} -o ${output_path} -z ${THREADS} -v 1 -b 0 -e -5/0.00001"
 	    echo ${command}
         eval ${command}
 
     elif [ "${SEARCHTOOL}" = "ghostz" ] ; then
-		echo "ghostz search..."
-
-        #check query file format
+        #check query file type [nucleic/amino acids]
         if [ ${QUERY_FILE_TYPE} = "DNA" ]; then
             ghostz_query_type="d"
         else
             ghostz_query_type="p"
         fi
 
-        touch ${output_blast_run}
-		command="${ghostz} aln -i ${QUERY_FILE} -d ${database} -o ${output_blast_set} -a ${THREADS} -b 1 -v 1 -q ${ghostz_query_type}"
+        touch ${output_tmpRunning}
+		command="${ghostz} aln -i ${QUERY_FILE} -d ${database} -o ${output_path} -a ${THREADS} -b 1 -v 1 -q ${ghostz_query_type}"
     	echo ${command}
         eval ${command}
-        rm ${output_blast_run}
+        rm ${output_tmpRunning}
 
     elif [ "${SEARCHTOOL}" = "paladin" ] ; then
-		echo "paladin search..."
         if [ "${database_type}" = "sprot" ] ; then
-    		command="${paladin} align -t ${THREADS} -o ${output_blast_set} ${database} ${QUERY_FILE}"
+    		command="${paladin} align -t ${THREADS} -o ${output_path} ${database} ${QUERY_FILE}"
         elif [ "${database_type}" = "nog" ] ; then
-            command="${paladin} align -t ${THREADS} ${database} ${QUERY_FILE} >${output_blast_set}"
+            command="${paladin} align -t ${THREADS} ${database} ${QUERY_FILE} > ${output_path}"
         fi
         echo ${command}
         eval ${command}
 
     elif [ "${SEARCHTOOL}" = "mmseq2" ] ; then
-        echo "mmseq2 search..."
+        # query DB prep
         if [ ! -e ${QUERY_FILE}.mmseq2 ]; then
             ${mmseq2} createdb ${QUERY_FILE} ${QUERY_FILE}.mmseq2
         fi 
-        ${mmseq2} search      ${QUERY_FILE}.mmseq2 ${database} ${output_blast_base}.preconv ../blast/tmp --threads ${THREADS} 
-        ${mmseq2} convertalis ${QUERY_FILE}.mmseq2 ${database} ${output_blast_base}.preconv ${output_blast_set}
+        ${mmseq2} search      ${QUERY_FILE}.mmseq2 ${database} ${output_prefix}.preconv ../blast/tmp --threads ${THREADS} 
+        ${mmseq2} convertalis ${QUERY_FILE}.mmseq2 ${database} ${output_prefix}.preconv ${output_path}
 
     elif [ "${SEARCHTOOL}" = "hmmer" ] ; then
-        touch ${output_blast_base}.NowRunning
-        #command="hmmscan --tblout ${output_blast_set} -o ${output_blast_base}.out --cpu ${THREADS} -E 1e-5 ${database} ${QUERY_FILE}"
-        #command="hmmscan -o ${output_blast_set}.out --tblout ${output_blast_set} --domtblout ${output_blast_base}.domtblout --cpu ${THREADS} -E 1e-3 --noali ${database} ${QUERY_FILE}"
-        #command="hmmscan --tblout ${output_blast_set} --domtblout ${output_blast_base}.domtblout --cpu ${THREADS} -E 1e-3 --noali ${database} ${QUERY_FILE}"
-        #command="${hmmscan} --tblout ${output_blast_set} --domtblout ${output_blast_base}.domtblout --cpu ${THREADS} --domE 1e-3 --noali ${database} ${QUERY_FILE}"
-        
-        #command="${hmmscan} -o ${output_blast_set}  --domtblout ${output_blast_base}.domtblout --cpu ${THREADS} --domE 1e-3 --noali ${database} ${QUERY_FILE}"
-        command="${hmmscan} --domtblout ${output_blast_base}.domtblout --cpu ${THREADS} --domE 1e-3 --noali ${database} ${QUERY_FILE} > /dev/null 2>&1"
+        touch ${output_tmpRunning}
+        command="${hmmscan} --domtblout ${output_prefix}.domtblout --cpu ${THREADS} --domE 1e-3 --noali ${database} ${QUERY_FILE} > /dev/null 2>&1"
         echo ${command}
         eval ${command}
-        rm ${output_blast_base}.NowRunning
+        rm ${output_tmpRunning}
 
     elif [ "${SEARCHTOOL}" = "hhblits" ] ; then
         #split multi fasta file into single ones
         ${hhblitsDIR}/scripts/splitfasta.pl ${QUERY_FILE}
 
-        ${hhblits} -i ${QUERY_FILE} -oa3m query.a3m -o ${output_blast_set} -blasttab ${output_blast_base}.domtblout \
+        ${hhblits} -i ${QUERY_FILE} -oa3m query.a3m -o ${output_path} -blasttab ${output_prefix}.domtblout \
                  --cpu ${THREADS} -e 0.001 -d ${database}
 
     elif [ "${SEARCHTOOL}" = "diamond" ] || [ "${SEARCHTOOL}" = "diamond-sensitive" ] || [ "${SEARCHTOOL}" = "diamond-c50" ] ; then
@@ -457,26 +426,22 @@ if [ ${FLAG_A} = 0 ] ; then
             option="--subject-cover 50 --query-cover 50"
         fi
 
-        touch ${output_blast_run}
-        command="${diamond} ${blast} --db ${database} --query ${QUERY_FILE} --outfmt 6 --max-target-seqs 1  --evalue 1e-5 --threads ${THREADS} ${option}  > ${output_blast_set}"
+        touch ${output_tmpRunning}
+        command="${diamond} ${blast} --db ${database} --query ${QUERY_FILE} --outfmt 6 --max-target-seqs 1  --evalue 1e-5 --threads ${THREADS} ${option}  > ${output_path}"
         echo ${command};  eval ${command}
-        rm  ${output_blast_run}
-
+        rm  ${output_tmpRunning}
     fi
-	
 else
 	echo "skiped blast search."
-	output_blast_set=${QUERY_FILE}
-	output_blast_real=${QUERY_FILE}
+	output_path=${QUERY_FILE}
+	output_path=${QUERY_FILE}
 fi
 
 
 echo "======================================================================="
 echo "annotation..."
 
-
 if [ "${SEARCHTOOL}" = "blast" ] || [ "${SEARCHTOOL}" = "rapsearch" ] ; then
-
 	break  #NO ANNOTAION
 
     echo ${db_type}
@@ -495,7 +460,7 @@ if [ "${SEARCHTOOL}" = "blast" ] || [ "${SEARCHTOOL}" = "rapsearch" ] ; then
     echo "output: ${output_annotation}"
     echo "${SEARCHTOOL} mode"
 
-	cat ${output_blast_real}| while read line
+	cat ${output_path}| while read line
 	do
 		#convert space into tab
 		#line=`cat ${line}| sed "s/[\t ]\+/\t/g"|`
@@ -552,19 +517,19 @@ elif [ "${SEARCHTOOL}" = "ghostz" ] ; then
 	#NOG==================
 	if [ ${db_type} = ${sprot_id} ] ; then 
         echo "blast_annotation_uniprot.py"
-		python3 blast_annotation_uniprot.py ${output_blast_set}
+		python3 blast_annotation_uniprot.py ${output_path}
     elif [ ${db_type} = ${NOG_id} ] ; then 
         echo "blast_annotation_nog.py"
-        python3 blast_annotation_nog.py     ${output_blast_set}
+        python3 blast_annotation_nog.py     ${output_path}
     elif [ ${db_type} = ${KEGG_id} ] ; then 
         echo "blast_annotation_kegg.py"
-        python3 blast_annotation_kegg.py    ${output_blast_set}
+        python3 blast_annotation_kegg.py    ${output_path}
 	else
 
         echo -n > ${output_annotation}
         echo "output: ${output_annotation}"
 
-		cat ${output_blast_set}| while read line
+		cat ${output_path}| while read line
 		do
 			#echo ${line}
 			gene_id_line=`echo "${line}" | cut -f1`  #M00587:17:000000000-AK158:1:1101:14247:1241_1 # 2 # 469 # -1 # ID=33_1;partial=11;start_type=Edge;rbs_motif=None;rbs_spacer=None;gc_cont=0.235
