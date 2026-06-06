@@ -12,7 +12,8 @@ Description:
     History:  20230329 (update hifiasm 0.19.3)
     History:  20230415 (update hifiasm 0.19.4)
     History:  20250411 (add continue option in SPAdes)
-    History:  20251223
+    History:  20260416 (update SPAdes 4.2.0)
+    History:  20260416
     - This is a script for (meta)genome assembly.
 Usage:
     ./assembly.sh -i [filename] -t [software]
@@ -49,6 +50,7 @@ Option:
     -M      Memory space (default: 250)
                 int (e.g., 250): SPAdes, canu, megahit, trinity 
                     - Max memory space is 192 (l) and 384 (mem) in DA system.
+    -a      Only-assembling mode, meanind skip error correction  (SPAdes)
 
 Currently unaveilable:
     #-L      minimum read length for assemby (wtdbg2, for pacbio and nanopore)
@@ -70,7 +72,8 @@ start_time=`date +%s`
 meta_platanus="   ${HOME}/software/MetaPlatanus_v1.2.2_Linux_x86_64_pre_build/meta_platanus.pl"
 megahit="         ${HOME}/software/MEGAHIT-1.2.9-Linux-x86_64-static/bin/megahit"
 soap2="           ../module/SOAPdenovo2/SOAPdenovo-127mer"
-SPAdes="          ${HOME}/software/SPAdes-3.15.0-Linux/bin/spades.py"
+#SPAdes="          ${HOME}/software/SPAdes-3.15.0-Linux/bin/spades.py"
+SPAdes="          ${HOME}/software/SPAdes-4.2.0-Linux/bin/spades.py"
 metavelvet="      ${HOME}/software/MetaVelvet-1.2.02"
 canu="            ${HOME}/software/canu-2.2/bin/canu"
 hifiasm="         ${HOME}/software/hifiasm-0.19.4/hifiasm"
@@ -86,7 +89,6 @@ flye="            flye"  #conda
 OPERA="           ${HOME}/software/OPERA-MS/OPERA-MS.pl"
 unicycler="       ${HOME}/software/Unicycler-0.4.8/unicycler-runner.py"
 Trinity="         ${HOME}/software/trinityrnaseq-v2.13.2/Trinity"
-
 
 python=`which python`  #"${HOME}/software/python2/bin/python"
 
@@ -106,6 +108,7 @@ _MEMORY=250
 #_p=21
 _SEQ_PLATFORM=""
 _MODE=0
+_READCORRECTION=1
 
 #--------------------------------------------------------------------------------------
 #http://qiita.com/b4b4r07/items/dcd6be0bb9c9185475bb
@@ -182,7 +185,9 @@ do
             ;;
         r)  _MODE=2
             ;;
-       	h)	usage_exit
+       	a)  _READCORRECTION=0
+            ;;
+        h)	usage_exit
 			exit 0
 			;;
 		\?)	usage_exit
@@ -285,6 +290,7 @@ case ${TOOL_TYPE} in
 	"SPAdes")
     #===========================
             prefix_option=""
+            basic_option=""
 	        if [ ${_MODE} = 0 ]; then
                 echo "Metaenome mode"
                 basic_option="--meta"
@@ -298,66 +304,74 @@ case ${TOOL_TYPE} in
                 prefix_option="rna"
 			fi
 
+            if [ ${_READCORRECTION} = 0 ]; then
+                echo "only-assembler mode"
+                basic_option=`echo "${basic_option} --only-assembler"`
+            fi
+
+
             source ${HOME}/miniconda3/etc/profile.d/conda.sh
             conda activate py38
 
             if   [ ${assembly_type} = "single"  ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_${BASE_FILENAME}
                 if [ ${_CONTINUE} = 1 ]; then
-                    ${python} ${SPAdes} -o ${outputPass} --continue
+                    #python ${SPAdes} -o ${outputPass} --continue
+                    python ${SPAdes} -o ${outputPass} --restart-from k33
                 else
-    				${python} ${SPAdes} -s ${INPUT_FILE}                        -o ${outputPass}    -t ${THREADS} -m ${_MEMORY} ${basic_option} ${option_continue}
+    				python ${SPAdes} -s ${INPUT_FILE}                        -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option} 
 	            fi		
             elif [ ${assembly_type} = "double"  ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_${BASE_FILENAME_P1}
                 if [ ${_CONTINUE} = 1 ]; then
-                    ${python} ${SPAdes} -o ${outputPass} --continue
+                    python ${SPAdes} -o ${outputPass} --continue
                 else
-    				${python} ${SPAdes} -1 ${INPUT_FILE_P1} -2 ${INPUT_FILE_P2} -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option} ${option_continue}
+    				python ${SPAdes} -1 ${INPUT_FILE_P1} -2 ${INPUT_FILE_P2} -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option} 
                 fi        
             elif [ ${assembly_type} = "MatePair_PairEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_PE-MP_${BASE_FILENAME_P1}
-                ${python} ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --mp-1 2 ${INPUT_FILE_P3} --mp-2 2 ${INPUT_FILE_P4}  \
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue}# # --mp-or 1 rf
+                python ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --mp-1 2 ${INPUT_FILE_P3} --mp-2 2 ${INPUT_FILE_P4}  \
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  # # --mp-or 1 rf
             
             elif [ ${assembly_type} = "Merged_PairEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_PE-Merged_${BASE_FILENAME_P1}
-                ${python} ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --merged ${INPUT_FILE_P0}\
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue}   
+                python ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --merged ${INPUT_FILE_P0}\
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}     
             
             elif [ ${assembly_type} = "Multiple_PairEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_Multi-PE_${BASE_FILENAME_P1}
-                ${python} ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --pe-1 2 ${INPUT_FILE_P5} --pe-2 2  ${INPUT_FILE_P6}\
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue}   
+                python ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --pe-1 2 ${INPUT_FILE_P5} --pe-2 2  ${INPUT_FILE_P6}\
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}     
             
             elif [ ${assembly_type} = "TrustedContigs_PairedEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_TC-PE_${FILENAME_C1}-${BASE_FILENAME_P1}
-                ${python} ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --trusted-contigs ${INPUT_FILE_C1}   \
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue} 
+                python ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --trusted-contigs ${INPUT_FILE_C1}   \
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}   
             
             elif [ ${assembly_type} = "TrustedContigs_MatePair" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_TC-MP_${FILENAME_C1}-${BASE_FILENAME_P3}
-                ${python} ${SPAdes} --hqmp-1 1 ${INPUT_FILE_P3} --hqmp-2 1  ${INPUT_FILE_P4}  --trusted-contigs ${INPUT_FILE_C1}  --hqmp-or 1 rf \
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue}  
+                python ${SPAdes} --hqmp-1 1 ${INPUT_FILE_P3} --hqmp-2 1  ${INPUT_FILE_P4}  --trusted-contigs ${INPUT_FILE_C1}  --hqmp-or 1 rf \
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}    
             
             elif [ ${assembly_type} = "PairEnd_PseudoPairEnd" ]; then
                 outputPass=${output_dir}/${prefix_option}SPAdes_PE-PPE_${BASE_FILENAME_P1}-${FILENAME_P8}
-                ${python} ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --pe-1 2 ${INPUT_FILE_P8} --pe-2 2  ${INPUT_FILE_P9}  --pe-or 2 rf \
-                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}  ${option_continue}   
+                python ${SPAdes} --pe-1 1 ${INPUT_FILE_P1} --pe-2 1  ${INPUT_FILE_P2}  --pe-1 2 ${INPUT_FILE_P8} --pe-2 2  ${INPUT_FILE_P9}  --pe-or 2 rf \
+                                                                            -o ${outputPass} -t ${THREADS} -m ${_MEMORY} ${basic_option}     
             
             else
 				echo "inccorect assembly_type"
                 exit
 			fi
 
-            #remove files for reduce strage usage
-            #rm ${outputPass}/K[1-9][1-9] -r
-            #rm ${outputPass}/corrected -r
-            #rm ${outputPass}/first_pe_contigs.fasta
-            #rm ${outputPass}/before_rr.fasta
-            #rm ${outputPass}/strain_graph.gfa
-            #rm ${outputPass}/misc -r
-            #rm ${outputPass}/rmp -r
+            # remove files for reduce strage usage
+            # This step was bit warning: if the script was finished due to the low memory, the temporary files will be rmoved so denied resume.
+            # rm ${outputPass}/K[1-9][1-9] -r
+            # rm ${outputPass}/corrected -r
+            # rm ${outputPass}/first_pe_contigs.fasta
+            # rm ${outputPass}/before_rr.fasta
+            # rm ${outputPass}/strain_graph.gfa
+            # rm ${outputPass}/misc -r
+            # rm ${outputPass}/rmp -r
 
             #make link for final contigs
             #cd ${output_dir}

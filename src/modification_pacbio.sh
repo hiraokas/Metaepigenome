@@ -18,7 +18,7 @@ Description:
     History:  20230626 (allowing multiple version of smrtlink)
     History:  20240307 (smrtlink v13.0.0)
     History:  20250227 (smrtlink v25.1.0)
-    History:  20251223
+    History:  20260131 (smrtlink v25.3.0)
     - Script for DNA modification detection using mapped PacBio reads.
     - Outline: https://github.com/ben-lerch/BaseMod-3.0
     - Final output: ../modification/xxx_motifs.gff
@@ -81,9 +81,12 @@ elif [ "${MODE}" = "v13" ] || [ ${MODE} == "defv13" ]  ; then
     ipdSummary=" ${HOME}/software/smrtlink_13.0.0.214433/smrtcmds/bin/ipdSummary"
     pbindex="    ${HOME}/software/smrtlink_13.0.0.214433/smrtcmds/bin/pbindex"
 elif [ "${MODE}" = "v25" ] || [ ${MODE} == "defv25" ]  ; then
-    MotifMaker=" ${HOME}/software/smrtlink_25.1.0.257715/smrtcmds/bin/pbmotifmaker"  #name changed
-    ipdSummary=" ${HOME}/software/smrtlink_25.1.0.257715/smrtcmds/bin/ipdSummary"
-    pbindex="    ${HOME}/software/smrtlink_25.1.0.257715/smrtcmds/bin/pbindex"
+    #MotifMaker=" ${HOME}/software/smrtlink_25.1.0.257715/smrtcmds/bin/pbmotifmaker"  #name changed
+    #ipdSummary=" ${HOME}/software/smrtlink_25.1.0.257715/smrtcmds/bin/ipdSummary"
+    #pbindex="    ${HOME}/software/smrtlink_25.1.0.257715/smrtcmds/bin/pbindex"
+    MotifMaker=" ${HOME}/software/smrtlink_25.3.0.273777//smrtcmds/bin/pbmotifmaker"  #name changed
+    ipdSummary=" ${HOME}/software/smrtlink_25.3.0.273777//smrtcmds/bin/ipdSummary"
+    pbindex="    ${HOME}/software/smrtlink_25.3.0.273777//smrtcmds/bin/pbindex"
 else
     echo "Undefined mode: ${MODE}"
     usage

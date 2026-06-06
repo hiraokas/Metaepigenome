@@ -23,7 +23,7 @@ Description:
     History: 20230530 (Pyroly epigenome)
     History: 20230918 (HotSpring)
     History: 20251225
-    - Making DNA modethylated ratios by motif vs. genomeID table for heatmap/pca analysis.
+    - Calculate modification ratios per motifs vs. genomeIDs in matrix format that can be used for the heatmap plot and PCA analysis.
     - threads = 10 (for seqkit)
 Input Filename format:
     filename: sample.fa
@@ -48,9 +48,8 @@ motif_identificationQv_threthold=00
 
 output_dir             = "../motifHeatmap"
 working_dir            = "../motifHeatmap/work"
-#genome_file_path       = "../metabat/genomeAll/"
-#genome_file_path       = "../ViralGenome/"
 #modification_type_list = ["m4C", "m5C", "m6A", "modified_base"]
+
 threads = 10
 
 #------------------------------------------------------------------------------------
@@ -141,10 +140,10 @@ def get_motif_from_file():
         for line in f:   #CCGG  1   m4C CCGG(1,m4C) 90
             #print(line)
             line = line.split("#")[0]  #remove comments
-            if line.strip()=="": continue
-            if line.strip().split()[0]=="motif"       : continue  # header
-            if line.strip().split()[0]=="motifString" : continue  # header
-            if line.strip().split()[0]=="?"           : continue  # undefined motif sequence
+            if line.strip()            == "":             continue
+            if line.strip().split()[0] == "motif"       : continue  # header
+            if line.strip().split()[0] == "motifString" : continue  # header
+            if line.strip().split()[0] == "?"           : continue  # undefined motif sequence
             target_motif_list.append(line.strip().split())
     return target_motif_list
 
@@ -336,40 +335,40 @@ if __name__=='__main__':
     #------------------------------------------------------------------------------------
     def output_modified_motif_count_matrix_by_contig(filename, bin_contig_motif_data, target_motif_list):
         pass
-#        output_data=[]
-#        
-#        #make header
-#        header     = ["bin","contig"]
-#        motif_list = []
-#        for motif_data in target_motif_list:
-#            target_motif             = motif_data[0]
-#            target_position          = motif_data[1]
-#            target_modtype           = motif_data[2]
-#            ModType_ModPos = "{}:{}".format(target_modtype, target_position)
-#            motif_itemName = "{}:{}:{}".format(target_modtype, target_position, target_motif)
-#
-#            motif_list.append(motif_itemName)
-#
-#        for motif_itemName in sorted(motif_list):
-#            header.append(motif)
-#
-#        output_data.append(header)
-#
-#        #set data
-#        for bin_id, contig_data in sorted(bin_contig_motif_data.items()):  #{bin{contig: {ModType_ModPos:{motif: count}}}}
-#            for contig, modification_data in sorted(contig_data.items()):  #    {contig: {ModType_ModPos:{motif: count}}}
-#                for ModType_ModPos, motif_data in sorted(modification_data.items()):  #  {ModType_ModPos:{motif: count}}
-#                    line=[bin_id, contig]
-#                    for ModType_ModPos, count in sorted(motif_data.items()):
-#                        line.append(str(count))
-#                    output_data.append(line)
-#
-    #    #output data
-    #    with open(filename,'w') as f: 
-    #        for line in output_data:
-    #            f.write("\t".join(line)+"\n") 
-    #    f.close()
-    #    print("output: {}".format(filename))
+       # output_data=[]
+       
+       # #make header
+       # header     = ["bin","contig"]
+       # motif_list = []
+       # for motif_data in target_motif_list:
+       #     target_motif             = motif_data[0]
+       #     target_position          = motif_data[1]
+       #     target_modtype           = motif_data[2]
+       #     ModType_ModPos = "{}:{}".format(target_modtype, target_position)
+       #     motif_itemName = "{}:{}:{}".format(target_modtype, target_position, target_motif)
+
+       #     motif_list.append(motif_itemName)
+
+       # for motif_itemName in sorted(motif_list):
+       #     header.append(motif)
+
+       # output_data.append(header)
+
+       # #set data
+       # for bin_id, contig_data in sorted(bin_contig_motif_data.items()):  #{bin{contig: {ModType_ModPos:{motif: count}}}}
+       #     for contig, modification_data in sorted(contig_data.items()):  #    {contig: {ModType_ModPos:{motif: count}}}
+       #         for ModType_ModPos, motif_data in sorted(modification_data.items()):  #  {ModType_ModPos:{motif: count}}
+       #             line=[bin_id, contig]
+       #             for ModType_ModPos, count in sorted(motif_data.items()):
+       #                 line.append(str(count))
+       #             output_data.append(line)
+
+       # #output data
+       # with open(filename,'w') as f: 
+       #     for line in output_data:
+       #         f.write("\t".join(line)+"\n") 
+       # f.close()
+       # print("output: {}".format(filename))
 
     #------------------------------------------------------------------------------------
     #motif presence matrix by genome
@@ -390,11 +389,11 @@ if __name__=='__main__':
 
                     #init
                     if not ModType_ModPos in bin_motif_data[bin_id].keys():
-                        bin_motif_data[bin_id][ModType_ModPos]=_int_dict()
+                        bin_motif_data[bin_id][ModType_ModPos] = _int_dict()
 
                     #count up
                     for motif, count in motif_data.items():  #{motif: count}
-                        bin_motif_data[bin_id][ModType_ModPos][motif]+=count
+                        bin_motif_data[bin_id][ModType_ModPos][motif] += count
 
         return bin_motif_data
 
@@ -433,7 +432,7 @@ if __name__=='__main__':
         #output data
         with open(filename,'w') as f: 
             for line in output_data:
-                f.write("\t".join(line)+"\n") 
+                f.write("\t".join(line) + "\n") 
         f.close()
 
     #convert
@@ -480,15 +479,15 @@ if __name__=='__main__':
                 #seqkit locate -idp GCWGC ../metabat/Final_20171102/metabat_canu_biwa_5m_1+2.ccs_PC_500m.3.fasta |cut -f1|uniq -c
                 #   5246 tig00000839
                 cmd = "seqkit locate -idp {} {} --threads {} | cut -f1 | uniq -c".format(motif_tuple[0], input_filename_genome, threads)
-                re  = subprocess.check_output(cmd,  shell=True).decode("utf8")
+                re  = subprocess.check_output(cmd,  shell = True).decode("utf8")
                 print(cmd)
                 print(re.split())
                 r = re.split()
-                contig_presence_count={}  #{contig: presence}
+                contig_presence_count = {}  #{contig: presence}
                 for i in range(0, len(r), 2):
-                    if r[i+1]=="seqID": continue
+                    if r[i+1] == "seqID": continue
                     #print(r[i+1])
-                    contig_motif_presence_count[r[i+1]][motif_tuple[0]]=int(r[i])
+                    contig_motif_presence_count[r[i+1]][motif_tuple[0]] = int(r[i])
 
         return contig_motif_presence_count
 
@@ -581,12 +580,12 @@ if __name__=='__main__':
                         
                         # no motif present on the contig
                         if motif not in contig_motif_presence_count[contig].keys():  #{motif: count}
-                            bin_contig_motif_ratio[bin_id][contig][ModType_ModPos][motif]=0
+                            bin_contig_motif_ratio[bin_id][contig][ModType_ModPos][motif] = 0
                             continue
 
                         #sum up 
                         presence   = contig_motif_presence_count[contig][motif]
-                        ratio      = count/presence
+                        ratio      = count / presence
                         bin_contig_motif_ratio[bin_id][contig][ModType_ModPos][motif]=ratio
 
         return bin_contig_motif_ratio
@@ -641,7 +640,7 @@ if __name__=='__main__':
         #output data
         with open(filename,'w') as f: 
             for line in output_data:
-                f.write("\t".join(line)+"\n") 
+                f.write("\t".join(line) + "\n") 
         f.close()
         print("output: {}".format(filename))
 
@@ -736,85 +735,3 @@ if __name__=='__main__':
     print("All done.")
     exit()
 
-
-
-
-
-
-
-
-
-
-    # #------------------------------------------------------------------------------------
-    # #top annotation barplot (motif count)
-    # #------------------------------------------------------------------------------------
-    # def output_motif_count_by_genome(output_filename):
-    #     total_motif_count=_int_dict()
-    #     for motif,count in biwa_5m_motif_count.items():
-    #         total_motif_count[motif]+=count
-    #     for motif,count in biwa_65m_motif_count.items():
-    #         total_motif_count[motif]+=count
-
-    #     with open(output_filename_motif_count,'w') as f: 
-    #         for motif,count in sorted(total_motif_count.items()):
-    #             #print(line)
-    #             f.write(motif+"\t"+str(count)+"\n") 
-    #     f.close()
-    #     print("output: "+output_filename_motif_count)
-
-    # #------------------------------------------------------------------------------------
-    # #right annotated heatmap (contig-bin)
-    # #------------------------------------------------------------------------------------
-    # def output_motif_count_by_genome(output_filename):
-    #     output_data=[]  #contigs (10000) x bins (17)
-    #     All_bins=[  "biwa_5m_Cluster1",
-    #             "biwa_5m_Cluster2",
-    #             "biwa_5m_Cluster3",
-    #             "biwa_5m_Cluster4",
-    #             "biwa_5m_Cluster5",
-    #             "biwa_5m_Cluster6",
-    #             "biwa_5m_Cluster7",
-    #             "biwa_5m_Cluster8",
-    #             "biwa_5m_Cluster9",
-    #             "biwa_5m_Cluster10",
-    #             "biwa_5m_Cluster11",
-    #             "biwa_5m_Cluster12",
-    #             "biwa_5m_Cluster13",
-    #             "biwa_65m_Cluster1",
-    #             "biwa_65m_Cluster2",
-    #             "biwa_65m_Cluster3",
-    #             "biwa_65m_Cluster4"]
-    #     header=["contig"]+All_bins
-    #     print(header)
-    #     output_data.append(header)
-
-    #     #change contig ID
-    #     total_contig_list=[]
-    #     for contig in biwa_5m_contig_motif_count.keys():
-    #         total_contig_list.append("biwa_5m_"+contig)
-    #     for contig in biwa_65m_contig_motif_count.keys():
-    #         total_contig_list.append("biwa_65m_"+contig)
-
-    #     for contig,bins  in sorted(contig_bin_maptable.items()):  # biwa_65m_tig00012541 biwa_65m_Cluster4 
-    #         #print(contig)
-    #         if contig not in total_contig_list: continue
-    #         #print("pass: "+contig)
-    #         line=[]
-    #         for binID in All_bins:
-    #             flag="1" if bins==binID else "0"
-    #             line.append(flag)
-    #         output_data.append([contig]+line)
-    #     #print(output_data)
-
-    #     with open(output_filename_bin_contig,'w') as f: 
-    #         #f.write("\t".join(header))
-    #         for line in output_data:
-    #             print(line)
-    #             f.write("\t".join(line)+"\n")
-
-    #         #f.write(motif+"\t"+str(count)+"\n") 
-    #     f.close()
-    #     print("output: "+output_filename_bin_contig)
-
-
-    

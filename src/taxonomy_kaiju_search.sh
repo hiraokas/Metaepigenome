@@ -70,7 +70,7 @@ database_GORG_fami="${database_pass}/GORG_v1_NCBI.fmi"
 
 threads=16
 start_time=`date +%s`
-OutputDir_root=../taxonomyAssignment
+OutputDir_root=../taxonomyAssignment/
 
 if [ $# -lt 1 ]; then
     usage
@@ -153,7 +153,8 @@ fi
 if [ ! -e ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv ]; then
     ${kaiju2krona}   -v -t ${database_node} -n ${database_name}            -o ${OUTPUT_PATH}/${BASE_FILENAME}.krona                    -i ${OUTPUT_FILE}
 
-    #taxono summary (calculate rerative abundances)
+    #taxonomy summary (calculate rerative abundances)
+    #${kaijuReport}   -v -t ${database_node} -n ${database_name} -r superkingdom  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv   ${OUTPUT_FILE}
     ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r phylum  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv   ${OUTPUT_FILE}
     ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r class   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.class.tsv    ${OUTPUT_FILE}
     ${kaijuReport}   -v -t ${database_node} -n ${database_name} -r order   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.order.tsv    ${OUTPUT_FILE}
@@ -163,6 +164,7 @@ if [ ! -e ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv ]; then
 
     #readID-taxon
     ${addTaxonNames} -v -t ${database_node} -n ${database_name}    -p      -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.FULL.tsv    -i ${OUTPUT_FILE}
+    #${addTaxonNames} -v -t ${database_node} -n ${database_name} -r superkingdom  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.phylum.tsv  -i ${OUTPUT_FILE}
     ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r phylum  -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.phylum.tsv  -i ${OUTPUT_FILE}
     ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r class   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.class.tsv   -i ${OUTPUT_FILE}
     ${addTaxonNames} -v -t ${database_node} -n ${database_name} -r order   -o ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.order.tsv   -i ${OUTPUT_FILE}
@@ -172,6 +174,7 @@ if [ ! -e ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.phylum.tsv ]; then
 
     #domain
     cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.FULL.tsv | cut -f-2 -d ";" | sed -e "s/cellular organisms; //g" | cut -f-1 -d ";" > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv
+    cat ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.names.domain.tsv | cut -f4 | sort | uniq -c | awk '{print "dummy\t0\t" $1 "\t0\t" $2}'  > ${OUTPUT_PATH}/${BASE_FILENAME}.kairep.summary.domain.tsv
 fi
 
 echo "all done"

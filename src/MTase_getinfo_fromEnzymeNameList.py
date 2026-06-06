@@ -14,9 +14,11 @@ def _help():
 Description:
     Satoshi Hiraoka
     hiraokas@jamstec.go.jp
-    Created:  20200122
-    History:  20210212
-    History:  20230919
+    Created: 20200122
+    History: 20210212
+    History: 20230919
+    History: 20260123 (update to bairoch.601)
+    History: 20260606
     - Make REBASE annotation from enzyme name list
     - informations are retrieved from bairoch file
 Require:
@@ -31,14 +33,15 @@ Tips:
 
 if __name__=='__main__':
     HomePath = os.environ['HOME']
-    #bairoch_file    = "/home/G10800/hiraokas//data/database/REBASE/bairoch.912"
-    bairoch_file    = "{}/database/REBASE/bairoch.305".format(HomePath)
+    #bairoch_file  = "{}/database/REBASE/bairoch.912".format(HomePath)
+    #bairoch_file  = "{}/database/REBASE/bairoch.305".format(HomePath)
+    bairoch_file  = "{}/database/REBASE/bairoch.601.txt".format(HomePath)
     #print("# Used database: {}".format(bairoch_file))
 
     #get input names
     name_list = sys.stdin.readlines()
 
-    if len(name_list)==0:
+    if len(name_list) == 0:
         print("# [ERROR] no inpu file name.")
         _help()
         exit()

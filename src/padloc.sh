@@ -16,8 +16,8 @@ Description:
 Required:
     Conda environment (padloc)
 Usage:
-    this.sh genome genome.fasta           [threads=6]
-    this.sh gene   gene.faa     gene.gff  [threads=6]
+    this.sh genome genome.fasta          [threads=6]
+    this.sh gene   gene.faa     gene.gff [threads=6]
 Install:
     conda create -n padloc -c conda-forge -c bioconda -c padlocbio padloc=2.0.0
     conda activate padloc
@@ -31,27 +31,27 @@ Install:
 
     #DDBJ
     #https://sc.ddbj.nig.ac.jp/software/spack/install_spack/
-#     cd ~/work/software
-#     git clone -c feature.manyFiles=true https://github.com/spack/spack.git
-#     export SPACK_ROOT=/home/hiraoka-s/workspace/software/spack
-#     source $SPACK_ROOT/share/spack/setup-env.sh
-#     spack compiler find
-#     spack install -j 4 gcc@8.5.0
-#     spack load gcc@8.5.0
-#     nano $HOME/.spack/linux/compilers.yaml
-# - compiler:
-#     spec: gcc@8.5.0
-#     paths:
-#       cc: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/gcc
-#       cxx: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/g++
-#       f77: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/gfortran
-#       fc: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/gfortran
-#     flags: {}
-#     operating_system: centos7
-#     target: x86_64
-#     modules: []
-#     environment: {}
-#     extra_rpaths: []
+    #     cd ~/work/software
+    #     git clone -c feature.manyFiles=true https://github.com/spack/spack.git
+    #     export SPACK_ROOT=/home/hiraoka-s/workspace/software/spack
+    #     source $SPACK_ROOT/share/spack/setup-env.sh
+    #     spack compiler find
+    #     spack install -j 4 gcc@8.5.0
+    #     spack load gcc@8.5.0
+    #     nano $HOME/.spack/linux/compilers.yaml
+    # - compiler:
+    #     spec: gcc@8.5.0
+    #     paths:
+    #       cc: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/gcc
+    #       cxx: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/g++
+    #       f77: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/gfortran
+    #       fc: /lustre7/home/lustre4/youraccount/spack/opt/spack/linux-centos7-x86_64_v3/gcc-4.8.5/gcc-8.5.0-a4dcd4j7uq23aax4n6ri6amzt7hp4lxc/bin/gfortran
+    #     flags: {}
+    #     operating_system: centos7
+    #     target: x86_64
+    #     modules: []
+    #     environment: {}
+    #     extra_rpaths: []
 
 ========================================================================================================================================
 EOF

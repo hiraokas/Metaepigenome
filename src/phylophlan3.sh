@@ -12,7 +12,8 @@ Description:
     Created: 20200209
     History: 20210612
     History: 20230924 (change to use conda environment)
-    History: 20250203
+    History: 20260223 (change output dir)
+    History; 20261223
     - A wrapper of Phylophlan3 for phylogenetic analysis of prokaryotic genomes. 
     - Please be careful when run this script: Phylophlan3 will use huge machine power.
     - RAxML_bestTree.XXX.tre will be the final best tree.
@@ -43,8 +44,8 @@ EOF
 
 #----------------------------------------------------
 threads=6
-phylophlan_dir=../phylophlan
-phylophlan_config_dir=../phylophlan/configs
+phylophlan_dir=../phylogeny
+phylophlan_config_dir=../phylogeny/phylophlan_configs
 phylophlan_database=${HOME}/database/phylophlan
 
 source ${HOME}/miniconda3/etc/profile.d/conda.sh

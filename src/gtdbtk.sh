@@ -15,12 +15,13 @@ Description
     History: 20230610 (update 2.3.0 with release214)
     History: 20240521 (update 2.4.0 with release220)
     History: 20250528 (update            release226, v2.4.1 was not work well in ES system)
-    History: 20251223
+    History: 20260428 (update 2.7.1 with release232)
+    History: 20260514 (update 2.7.2 with release232, change mode name and dir path)
     - A wrapper of GTDB-Tk for taxonomic assignment of genomes.
     - https://github.com/Ecogenomics/GTDBTk
     - gtdb-tk takes a lot of memory space (typically <60 GB, ~880 GB in ES system).
         - officially, 150 GB per threads are required by pplacer
-    - outputdir: ../gtdbtk
+    - outputdir: ../taxonomyAssignment/
 Install:
     see -H option
 Usage:
@@ -48,10 +49,16 @@ Install:
     - Also: https://ecogenomics.github.io/GTDBTk/installing/index.html
 
     #conda install -c bioconda gtdbtk==2.3.0
-    #conda create -n gtdbtk -c conda-forge -c bioconda gtdbtk==2.3.0  #sould specify version
-    conda create -n gtdbtk-2.4.1 -c conda-forge -c bioconda gtdbtk=2.4.1
-    conda activate gtdbtk-2.4.1
-    conda env config vars set GTDBTK_DATA_PATH=${HOME}/database/GTDB-Tk/release226/
+    #conda create -n gtdbtk-2.3.0 -c conda-forge -c bioconda gtdbtk=2.3.0  #sould specify version
+    #conda create -n gtdbtk-2.4.1 -c conda-forge -c bioconda gtdbtk=2.4.1  # r226
+     conda create -n gtdbtk-2.7.2 -c conda-forge -c bioconda gtdbtk=2.7.2  # r232
+    conda activate gtdbtk-2.7.2
+    conda env config vars set GTDBTK_DATA_PATH=${HOME}/database/GTDB-Tk/release232/
+
+    #multiprocessing
+    #conda install conda-forge::multiprocess
+    #conda install numpy==2.2.6 # downgrade to be adjusted to gtdbtk-2.4.1
+    #conda install -c bioconda skani=0.3.1  #downgrade for ES system
 
     #tensorflow
     #pip install tensorflow
@@ -62,12 +69,14 @@ Install:
     tar xvzf gtdbtk_data.tar.gz
 
     #check
-    conda activate gtdbtk-2.4.1
-    database=${HOME}/database/GTDB-Tk/release226/
+    conda activate gtdbtk-2.7.2
+    database=${HOME}/database/GTDB/release232/
     export GTDBTK_DATA_PATH=${database}
     gtdbtk check_install
 
+    rm -r OUT_DIR
     gtdbtk test --out_dir OUT_DIR --cpus 10
+    gtdbtk classify_wf --place_species --genome_dir OUT_DIR/genomes --out_dir OUT_DIR/output --cpus 10 -f --extention fa
 ========================================================================================================================================
 EOF
     return 0
@@ -104,11 +113,13 @@ fi
 
 #------------------------------------------------------------------
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
-conda activate gtdbtk-2.4.0 
 #conda activate gtdbtk-2.4.1
+#conda activate gtdbtk-2.7.1
+conda activate gtdbtk-2.7.2
 
-#database=${HOME}/database/GTDB-Tk/release220/ ; DBversion="R220"
-database=${HOME}/database/GTDB-Tk/release226/ ; DBversion="R226"
+#database=${HOME}/database/GTDB/release220/ ; DBversion="R220"
+#database=${HOME}/database/GTDB/release226/ ; DBversion="R226"
+ database=${HOME}/database/GTDB/release232/ ; DBversion="R232"
 export GTDBTK_DATA_PATH=${database}
 #------------------------------------------------------------------
 
@@ -117,7 +128,8 @@ export GTDBTK_DATA_PATH=${database}
 
 Dirpass=`echo ${targetDir}| sed -e "s/\/$//g"`
 DirpassBase=${Dirpass##*/}
-OutputDir=${OutputDir_root}/${mode}_${DirpassBase}_${DBversion}
+OutputDir_prefix=${mode}_${DirpassBase}_${DBversion}
+OutputDir=${OutputDir_root}/${OutputDir_prefix}
 
 echo "============================================================"
 which gtdbtk
@@ -146,8 +158,12 @@ echo "Auto-detedted extention: ${ext}"
 #run
 mkdir -p ${OutputDir}/tmp/
 if [ ${mode} == "classify_wf" ]; then 
-    gtdbtk classify_wf --genome_dir ${Dirpass}/ --extension ${ext} --out_dir ${OutputDir} --cpus ${thread}  \
-        --force --tmpdir ${OutputDir}/tmp/ --mash_db ${OutputDir} --scratch_dir ${OutputDir}/scratch/ #  --debug --full_tree
+    gtdbtk classify_wf --genome_dir ${Dirpass}/ --extension ${ext} --out_dir ${OutputDir} --cpus ${thread} --force \
+        --scratch_dir ${OutputDir}/scratch/ 
+        # --tmpdir      ${OutputDir}/tmp/ \  # not work since gtdb-tk 2.7.1
+        # --debug --full_tree 
+        # --place_species \
+        # --mash_db ${OutputDir}  # gtdb-tk 2.4.1
 
 elif [ ${mode} == "de_novo_wf_bacteria" ]; then
     outgroup="p__Patescibacteriota"
@@ -167,6 +183,10 @@ else
     echo "Illigal mode: ${mode}"
     exit 1
 fi
+
+# merge output file
+cat ${OutputDir}/gtdbtk.{bac,ar}*.summary.tsv | sort > ${OutputDir}/gtdbtk.all.summary.tsv
+cat ${OutputDir}/gtdbtk.{bac,ar}*.summary.tsv | sort > ${OutputDir_root}/${OutputDir_prefix}.tsv
 
 # clean---------------------------------------
 echo "Clean tmeporaly files/dirs"

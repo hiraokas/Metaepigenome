@@ -1,7 +1,4 @@
-#!/bin/sh
-#$ -m be
-#$ -cwd
-#$ -pe threads 10
+#!/bin/bash
 
 function usage() {
     cat <<EOF
@@ -13,12 +10,14 @@ Description:
     History:  20220709 (change memo to sh script)
     History:  20230720 (using conda version)
     History:  20250111 (return to stand-alone version)
-    History:  20250220
+    History:  20250603 (add virus option: Genetic code = 1)
     - This script is for dfast that is a tool of genome annotation including functional gene annotation.
     - Use Biopython
     - thread = 6
+Option:
+    virus: translation code = 1
 Usage:
-    this.sh genome.fa
+    this.sh genome.fa [virus]
 Output:
     cds.fna
     genome.fna
@@ -37,11 +36,20 @@ INSTALL:
     ln -s scripts/dfast_file_downloader.py ~/local/bin/
     conda activate py38
     conda install biopython -c bioconda 
-For ES system
-    cp     /usr/lib64/libidn.so.11.6.18 ~/local/lib/ # for blastp at qlogin server, ES system
-    ln -s ~/local/lib/libidn.so.11.6.18 ~/local/lib/libidn.so.11 # for blastp at qlogin server, ES system
-    qlogin -q cpu_I -l elapstim_req=8:00:00 -X  
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/local/lib/
+    # conda install blast -c bioconda
+
+    For ES system:
+        # conda install -c conda-forge libidn libidn2
+        # conda install -c bioconda libidn
+        conda install conda-forge::libidn11
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/miniconda3/envs/py38/lib/
+
+        # not conda
+        cp     /usr/lib64/libidn.so.11.6.18 ~/local/lib/             # for blastp at qlogin server, ES system
+        ln -s ~/local/lib/libidn.so.11.6.18 ~/local/lib/libidn.so.11 # for blastp at qlogin server, ES system
+        qlogin -q cpu_I -l elapstim_req=8:00:00 -X  
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/local/lib/
+
 Making databases:
     ~/workspace/software/dfast_core-1.3.4/scripts/dfast_file_downloader.py --protein dfast
 ==================================================================================================================================================================================
@@ -74,6 +82,15 @@ outdir=" ../dfast"
 
 threads=6
 
+# option
+option=""
+if [ $# -gt 1 ] && [ ${2} == "virus" ] ; then
+    echo "!!!Virus mode !!!" 
+    option="--gcode 1"
+    outdir=" ../dfast_DDBJvirus"
+fi
+
+
 #=============================================
 #run (prokaryote version)
 #=============================================
@@ -87,7 +104,7 @@ ${dfast} -g ${InputFile} --use_prodigal \
     --out ${outdir}/${str_filename_we} \
     --no_hmm --no_cdd \
     --cpu ${threads} \
-    --force
+    --force ${option}
 
     #--locus_tag_prefix ECXXX \
     #--database ${database}/DFAST-default \

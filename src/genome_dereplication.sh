@@ -30,7 +30,7 @@ mode:
         ANI    = 0.99
         - using dRep with checkm1
         - checkm1 is available for quality filtering, but not used in this script.
-s    galah_virus      
+    galah_virus      
         ANI    = 0.95
         length = 1 kb  (small contigs are accepted)
         - using galah
@@ -85,7 +85,6 @@ ANI=0.95
 LENGTH=50000
 outputDir=../dereplicate
 
-
 mode=${2}
 
 if [ $# -gt 2 ]; then
@@ -110,8 +109,6 @@ elif [ ${mode} = "galah_virus" ]; then
     LENGTH=1000
 fi
 
-
-
 if [ ! -e ${output_dir} ]; then
     mkdir ${output_dir}
 fi
@@ -128,14 +125,13 @@ if [ ${mode} = "dRep_species" ] ||  [ ${mode} = "dRep_strict" ] ; then
     source ${HOME}/miniconda3/etc/profile.d/conda.sh
     conda activate dRep
     
-    dRep dereplicate ${output_dir} -g ${input_dir}/*.fa -p ${threads} --S_algorithm ANImf -comp 0 -con 0  --primary_chunksize 500 -sa ${ANI} -l ${LENGTH}
+    dRep dereplicate ${output_dir} -g ${input_dir}/*.fa -p ${threads} --S_algorithm ANImf -comp 0 -con 0 --primary_chunksize 500 -sa ${ANI} -l ${LENGTH}
     #--multiround_primary_clustering
     # -l 100000
 
     #clean up
     rm -r ${output_dir}/data
     rm -r ${output_dir}/data_tables
-
 
 elif  [ ${mode} = "galah_virus" ]; then
     source ${HOME}/miniconda3/etc/profile.d/conda.sh
@@ -150,8 +146,6 @@ else
     exit 0
 fi
 
-
 #dRep compare output_directory -g path/to/genomes/*.fasta
-
 
 echo "All done"

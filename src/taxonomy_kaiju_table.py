@@ -35,21 +35,21 @@ Tips:
 =========================================================================================================
    """)
 
-Output_dir="../taxonomy"
+Output_dir="../taxonomyAssignment/"
 
-if __name__=='__main__':
+if __name__ == '__main__':
     argvs = sys.argv
     argc  = len(argvs)
 
-    if argc<2 or argvs[1]=="-h":
+    if argc < 2 or argvs[1] == "-h":
         _help()
         exit()
 
-    dir_pass=argvs[1]
+    dir_pass = argvs[1]
 
-    if argc<3:
+    if argc < 3:
         Other_threshold = 0.01
-    elif argc>=3 and str.isdigit(argvs[2].replace(".","",1)):
+    elif argc >= 3 and str.isdigit(argvs[2].replace(".","",1)):
         Other_threshold = float( argvs[2])
     else:
         print("Illigal number: {}".format(argvs[2]))
@@ -117,8 +117,8 @@ if __name__=='__main__':
                     if len(l)<5: continue 
                     if l[0] == "file": continue
 
-                    count=l[2]
-                    taxon=l[4]
+                    count = l[2]
+                    taxon = l[4]
 
                     if taxon=="":                     continue
                     #if "cannot be assigned" in taxon: continue
@@ -128,7 +128,7 @@ if __name__=='__main__':
                     #if "Viruses"            == taxon: continue
                     if (k!="D") and ("Viruses" == taxon): continue #only cont when k=D
                     
-                    total_dataset[k][sample][taxon]=int(count)
+                    total_dataset[k][sample][taxon] = int(count)
 
     #===================================================
     print("make table for PCA -------------") 

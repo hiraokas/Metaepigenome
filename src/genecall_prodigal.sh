@@ -13,14 +13,14 @@ Description:
     History:  20220503 (add multi-split mode)
     History:  20221122 (accept fasta.gz)
     History:  20250531 (.fna ang .gff will not output as defalt)
-    History:  20251225
+    History:  20260422
     - This is a script for CDS prediction using Prodigal.
     - Input file is recommended to be splited by 5GB if exceeded.
     - To output fasta and gff files in addition to faa, add "all" option.
 Required:
     seqkit, prodigal
 Usage:
-    genecall_prodigal input_file.fasta/q/fasta.gz meta/single/short [all]
+    genecall_prodigal input_file.fasta/q/fasta(.gz) meta/single/short [all]
 TIPS:
      ./genecall_prodigal.sh ../data/Hiyori.0.fna single
 ========================================================================================================================================
@@ -58,7 +58,7 @@ FLAG_fasta_gff=""
 # fi
 
 #make dir
-if [ ! -e ${OUT_DIR} ]; then
+if [ ! -e ${OUT_DIR}/work ]; then
     mkdir ${OUT_DIR}/work -p
 fi
 
@@ -156,6 +156,7 @@ else
     echo "merge"
     cat ${OUT_DIR}/${BASE_FILENAME}.part_*.pro.faa > ${OUT_DIR}/${BASE_FILENAME}.pro.faa
     cat ${OUT_DIR}/${BASE_FILENAME}.part_*.cds.fna > ${OUT_DIR}/${BASE_FILENAME}.cds.fna
+    cat ${OUT_DIR}/${BASE_FILENAME}.part_*.gff     > ${OUT_DIR}/${BASE_FILENAME}.gff
 
     #erase
     echo "remove tmp files"

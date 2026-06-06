@@ -7,13 +7,14 @@ Description
     Satoshi Hiraoka
     hiraokas@jamstec.go.jp
     Created: 20220903
-    History: 20240924 #database update: 2023Aug
-    History: 20251223
+    History: 20240924 (database update: Aug2023)
+    History: 20260205 (update: 1.4.2, database: Jun2025)
+    History: 20260205
     - A wrapper of iPHoP to predict host-phage interaction using genomic information. 
     - https://bitbucket.org/srouxjgi/iphop/src/main/
     - This workflow conposed with multiple tools. Please check log files (XXX.log under the output dir) carefully when some troubles occured.
 Require
-    conda envirpnment (iphop)
+    conda environment (iphop)
 Usage:
     this.sh viral.fasta [threads=10] [database_path]
 Output dir:
@@ -23,7 +24,18 @@ Tips:
     ./iPHoP.sh ../DSSM/DSSMv0.2/DSSMv0.2_V-MAGs.fa 
 Install:
     #----------------------------------
-    #manual install 2024/2025
+    # conda install 
+    # (well work, but take >1h to resolve conda environment...: 202409)
+    # (not work: 20250424)
+    # (work at DDBJ: 20260212)
+    #----------------------------------
+    conda create -n iphop142 python=3.8 -y
+    conda activate iphop142
+    conda install iphop=1.4.2 -c conda-forge -c bioconda -y
+
+    #----------------------------------
+    # manual install 2024/2025
+    # denied to access via JAMSTEC network (20260205)
     #----------------------------------
     conda activate iphop
     git clone https://bitbucket.org/srouxjgi/iphop.git
@@ -37,15 +49,6 @@ Install:
     conda install -c bioconda perl-bioperl  # Bio::SeqIO
     pip uninstall pandas
     conda install pandas==1.3 -c conda-forge  #pandas should be 1.3, not >2 and 1.5.3
-
-    #----------------------------------
-    # conda sintall 
-    # (well work, but take >1h to resolve conda environment...: 202409)
-    # (not work: 20250424)
-    #----------------------------------
-    conda create -n iphop python=3.8 
-    conda activate iphop
-    conda install iphop=1.3.3 -c conda-forge -c bioconda 
 
     #----------------------------------
     # manual install 2023
@@ -70,14 +73,14 @@ Install:
     # make -J 10
     # make install
 
-Database prep
+Database prep:
     # using provided official database
     conda activate iphop
-    mkdir ${HOME}/database/iPHoP/iPHoP_2023Aug23
-    iphop download --db_dir ${HOME}/database/iPHoP/iPHoP_2023Aug23  #this will takes >2h
-    iphop download --db_dir ${HOME}/database/iPHoP/iPHoP_2023Aug23 --full_verify
+    mkdir ${HOME}/database/iPHoP/iPHoP_Jun2025 -p
+     iphop download --db_dir ${HOME}/database/iPHoP/iPHoP_Jun2025  #this will takes ~3h in DDBJ, ~300 GB
+    #iphop download --db_dir ${HOME}/database/iPHoP/iPHoP_Aug2023 --full_verify
 
-Database prep (manual addition of my P-MAGs with GTDB)
+Database prep (manual addition of my P-MAGs with GTDB):
     # cd ~/database/iPHop_20230608
     # wget https://bitbucket.org/srouxjgi/iphop/downloads/Data_test_add_to_db.tar.gz
     # tar -xvf Data_test_add_to_db.tar.gz
@@ -88,10 +91,10 @@ Database prep (manual addition of my P-MAGs with GTDB)
     #gtdbtk de_novo_wf --genome_dir ../DSSM/DSSMv0.2/DSSMv0.2_HQrep/ --archaea   --out_dir ../gtdbtk/archaea/  --cpus 10  --extension fa --outgroup_taxon p__Altiarchaeota  
     # - OUTgroup SHOULd be changed due to the nomenculate changes of many phylum
 
-    ./qsub_DDBJ.sh medium 10 20 40 ./gtdbtk.sh de_novo_wf_bacteria ../DSSM/DSSMv0.2/DSSMv0.2_HQrep/ 10
-    ./qsub_DDBJ.sh medium 10 20 40 ./gtdbtk.sh de_novo_wf_archaea  ../DSSM/DSSMv0.2/DSSMv0.2_HQrep/ 10
-    # ./qsub_ES.sh   gpu   1 1 48 ./gtdbtk.sh de_novo_wf_bacteria  ../my_binning/P-MAGv0.4_chromosome/ 16
-    # ./qsub_ES.sh   gpu   1 1 48 ./gtdbtk.sh de_novo_wf_archaea   ../my_binning/P-MAGv0.4_chromosome/ 16
+    ./qsub_DDBJ.sh medium 10 20 40 ./gtdbtk.sh de_novo_wf_bacteria  ../DSSM/DSSMv0.2/DSSMv0.2_HQrep/ 10
+    ./qsub_DDBJ.sh medium 10 20 40 ./gtdbtk.sh de_novo_wf_archaea   ../DSSM/DSSMv0.2/DSSMv0.2_HQrep/ 10
+    # ./qsub_ES.sh    gpu   1 1 48 ./gtdbtk.sh de_novo_wf_bacteria  ../my_binning/P-MAGv0.4_chromosome/ 16
+    # ./qsub_ES.sh    gpu   1 1 48 ./gtdbtk.sh de_novo_wf_archaea   ../my_binning/P-MAGv0.4_chromosome/ 16
 
     #gather
     mv ../GTDB-Tk/de_novo_wf_archaea_P-MAGv0.4_chromosome/*   ../GTDB-Tk/de_novo_wf_ALL_P-MAGv0.4_chromosome/
@@ -99,12 +102,12 @@ Database prep (manual addition of my P-MAGs with GTDB)
 
     iphop add_to_db --fna_dir ../my_binning/P-MAGv0.4_chromosome/ --gtdb_dir ../GTDB-Tk/de_novo_wf_ALL_P-MAGv0.4_chromosome/ --out_dir ${HOME}/database/iPHop_20230608/mpt_2021_pub_rw/
 
-Test run
+Test run:
     conda activate iphop
     export LD_LIBRARY_PATH=${HOME}/local/lib:${HOME}/miniconda3/lib:$LD_LIBRARY_PATH
-    export PERL5LIB=${HOME}/miniconda3/envs/iphop/lib/perl5/site_perl/5.22.0/:${PERL5LIB}
-    iphop predict --debug --fa_file ${HOME}/workspace/software/iphop/test/test_input_phages.fna --db_dir ${HOME}/database/iPHoP/iPHoP_2023Aug23/Aug_2023_pub_rw/ \
-    --out_dir test_input_phages_iphop_origin  --num_threads 16 
+    export PERL5LIB=${HOME}/miniconda3/envs/iphop/lib/perl5/site_perl/5.22.0/:${HOME}/miniconda3/envs/iphop142/lib/perl5/site_perl/5.22.0/:${PERL5LIB}
+    #iphop predict --debug --fa_file ${HOME}/workspace/software/iphop/test/test_input_phages.fna --db_dir ${HOME}/database/iPHoP/iPHoP_2023Aug23/Aug_2023_pub_rw/  --out_dir test_input_phages_iphop_origin  --num_threads 16 
+     iphop predict --debug --fa_file ${HOME}/workspace/software/iphop/test/test_input_phages.fna --db_dir ${HOME}/database/iPHoP/iPHoP_Jun2025/Jun_2025_pub_rw/    --out_dir test_input_phages_iphop_origin  --num_threads 16 
 
 ==================================================================================================================================================================================
 EOF
@@ -112,7 +115,8 @@ EOF
 }   
 
 #---------------------------------------------------------------------
-database=${HOME}/database/iPHoP/iPHoP_2023Aug23/Aug_2023_pub_rw
+#database=${HOME}/database/iPHoP/iPHoP_2023Aug23/Aug_2023_pub_rw
+database=${HOME}/database/iPHoP/iPHoP_Jun2025/Jun_2025_pub_rw
 output_dir=../HostPrediction/
 threads=10
 #---------------------------------------------------------------------
@@ -140,12 +144,18 @@ OUTPUT_path=${output_dir}/iPHoP_${DBNAME}_${BASE_FILENAME}
 
 #---------------------------------------------------------------------
 source ${HOME}/miniconda3/etc/profile.d/conda.sh
-conda activate iphop 
+
+#conda activate iphop 
+#export PATH=${HOME}/local/bin:$PATH
+#export LD_LIBRARY_PATH=${HOME}/local/lib:${HOME}/anaconda3-2/lib:$LD_LIBRARY_PATH
+#export PERL5LIB=${HOME}/miniconda3/envs/iphop/lib/perl5/site_perl/5.22.0/:${PERL5LIB}
+
+conda activate iphop142
 
 #need for rafah run
 export PATH=${HOME}/local/bin:$PATH
-export LD_LIBRARY_PATH=${HOME}/local/lib:${HOME}/anaconda3-2/lib:$LD_LIBRARY_PATH
-export PERL5LIB=${HOME}/miniconda3/envs/iphop/lib/perl5/site_perl/5.22.0/:${PERL5LIB}
+export LD_LIBRARY_PATH=${HOME}/local/lib:${HOME}/miniconda3/lib:$LD_LIBRARY_PATH
+export PERL5LIB=${HOME}/miniconda3/envs/iphop/lib/perl5/site_perl/5.22.0/:${HOME}/miniconda3/envs/iphop142/lib/perl5/site_perl/5.22.0/:${PERL5LIB}
 #---------------------------------------------------------------------
 
 #log

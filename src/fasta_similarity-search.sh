@@ -16,7 +16,8 @@ Description:
     History: 20240301 (REBASE 20240301)
     History: 20241007 (dbCAN v13)
     History: 20251021 (dbCAN v14)
-    History: 20251223
+    History: 20260123 (REBASE 20251028)
+    History: 20260217 (Pfam 38.1)
     - This script is a wrapper for sequence similarity search and annotation against protein sequence database.
 Usage:
     $(basename ${0}) [command] [<options>]
@@ -59,8 +60,18 @@ Database:
     REBASE:
         #files must be downloaded via FTP, not web browser
         #http://rebase.neb.com/rebase/rebase.seqs.html
-        cat All_REBASE_Gold_Standards_Protein_20240301.txt | sed -e '/^>/!s/ //g'  | sed '/^$/d'  > All_REBASE_Gold_Standards_Protein_20240301.faa
-        diamond makedb --in All_REBASE_Gold_Standards_Protein_20240301.faa -d All_REBASE_Gold_Standards_Protein_20240301 --threads 4
+        
+        #cat All_REBASE_Gold_Standards_Protein_20240301.txt | sed -e '/^>/!s/ //g'  | sed '/^$/d'  > All_REBASE_Gold_Standards_Protein_20240301.faa
+        #diamond makedb --in All_REBASE_Gold_Standards_Protein_20240301.faa -d All_REBASE_Gold_Standards_Protein_20240301 --threads 4
+        
+        #cat All_REBASE_Gold_Standards_20220530.txt | sed -e '/^>/!s/ //g'  -e '/^$/d'  > All_REBASE_Gold_Standards_20220530.faa
+        #diamond makedb --in All_REBASE_Gold_Standards_20220530.faa -d All_REBASE_Gold_Standards_20220530 --threads 4
+        
+        cat All_REBASE_Gold_Standards_Protein_20251028.txt | sed -e '/^>/!s/ //g'  -e '/^$/d'  > All_REBASE_Gold_Standards_Protein_20251028.faa
+        cp All_REBASE_Gold_Standards_Protein_20251028.faa ~/database/REBASE/
+        diamond makedb --in ~/database/REBASE/All_REBASE_Gold_Standards_Protein_20251028.faa -d ~/database/REBASE/All_REBASE_Gold_Standards_Protein_20251028 --threads 10
+    pFam:
+        wget https://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 Tools:
     blast:
         ~/software/ncbi-blast-2.3.0+/bin/makeblastdb -dbtype prot -in XXX.fasta -hash_index -parse_seqids -gi_mask
@@ -115,16 +126,16 @@ NOG_annotation="      ${HOME}/database/eggNOG5/e5.og_annotations.tsv"
 
 #3
 REBASE_id=3
-REBASE_name="REBASEv20240301"
-REBASE_database="        ${HOME}/database/REBASE/All_REBASE_Gold_Standards_Protein_20240301.faa"
-REBASE_database_diamond="${HOME}/database/REBASE/All_REBASE_Gold_Standards_Protein_20240301.dmnd"  
+REBASE_name="REBASEv20251028"
+REBASE_database="        ${HOME}/database/REBASE/All_REBASE_Gold_Standards_Protein_20251028.faa"
+REBASE_database_diamond="${HOME}/database/REBASE/All_REBASE_Gold_Standards_Protein_20251028.dmnd"  
 
 #4
 Pfam_id=4
-Pfam_name="Pfamv33.1"
-Pfam_database="        ${HOME}/database/Pfam_33.1/Pfam-A.fasta"
-Pfam_database_hmm="    ${HOME}/database/PfamA_33.1/Pfam-A.hmm"
-Pfam_annotation="      ${HOME}/database/Pfam_33.1/Pfam-A.clans.tsv"
+Pfam_name="Pfam"
+#Pfam_database="        ${HOME}/database/Pfam/Pfam_38.1.fasta"
+ Pfam_database_hmm="    ${HOME}/database/Pfam/Pfam_38.1.hmm"
+#Pfam_annotation="      ${HOME}/database/Pfam/Pfam_38.1.clans.tsv"
 
 #5
 dbCAN_id=5
