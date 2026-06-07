@@ -11,26 +11,18 @@ The official source code repository is at https://github.com/hiraokas/Metaepigen
 <img width="821" height="489" alt="Metaepigenome_overview" src="https://github.com/user-attachments/assets/9b8f3d0d-5996-4dcd-8053-788e1eda7a31" />
 
 ### Main step
-- Metagenome assembly
-- Binning
-- MAG/SAG dereprication, quarity check, genomic analysis, and phylogenetic analysis
-- HiFi read mapping on MAG/SAG
+- Metagenome assembly and binning for MAG reconstruction
+- Single-cell genome analysis for SAG reconstruction
+- Virus and extrachromosomal circular genome extraction
+- prokarotic MAG/SAG dereprication, quarity check, genomic analysis, and phylogenetic analysis
+- HiFi read mapping on MAG/SAGs
 - Modification call and motif prediction
 - defense system prediction
 - Host-virus prediction
 
 ## Code
 The codes are written in shell script and python.
-
-| File                    | Description |
-----|---- 
-| XXX.sh       | XXX |
-| **mainScript_XXX.sh**  | Main script in this study |
-
-## Dataset
-| File                    | Description |
-----|---- 
-|XXX.fasta| XXX |
+Main script in this study is: mainScript_HotSpring.sh
 
 ## Dependencies
 - [Prodigal](https://github.com/hyattpd/Prodigal) - CDS prediction
@@ -45,18 +37,21 @@ The codes are written in shell script and python.
 Also we used additional tools and databases for detailed data analysis in this study.
 - [MEGA X](https://www.megasoftware.net/) - Phylogenetic tree analysis
 
-## Usage 
-
-TBA
-
 ## Citation 
+- Metaepigenome
 1. Hiraoka S. in prep. 
 2. Satoshi Hiraoka*, Tomomi Sumida, Miho Hirai, Atsushi Toyoda, Shinsuke Kawagucci, Taichi Yokokawa, Takuro Nunoura. Diverse DNA modification in marine prokaryotic and viral communities. Nucleic Acids Research. 50(3), 1531-1550. (2022)
    - https://academic.oup.com/nar/article/50/3/1531/6509096
    - First paper of the Metaepigenomic analysis of marine communities including prokaryotes and viruses. 
 4. Satoshi Hiraoka*, Yusuke Okazaki, Mizue Anda, Atsushi Toyoda, Shin-ichi Nakano, Wataru Iwasaki*. Metaepigenomic analysis reveals the unexplored diversity of DNA methylations in an environmental prokaryotic community. Nature Communications. 10, 159. (2019)
    - https://www.nature.com/articles/s41467-018-08103-y
-   - First paper of the Metaepigenomic analysis of prokaryotic communities. 
+   - First paper of the Metaepigenomic analysis of prokaryotic communities.
+- Hot spring microbiology at the sampling sites.
+1. TAB
 ```
+Contact:
+Satoshi Hiraoka, Ph.D.
+Bioresource Innovation Technology and Research Program (BITER),Institute for Extra-cutting-edge Science and Technology Avant-garde Research of Life (X-star), Japan Agency for Marine-Earth Science and Technology (JAMSTEC)
 Email: hiraokas@jamstec.go.jp
+HomePage: https://sites.google.com/site/shselfintro/
 ```
