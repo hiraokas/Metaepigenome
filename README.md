@@ -9,7 +9,8 @@ The main script and related modules are stored in the src/ directory.
 The official source code repository is at https://github.com/hiraokas/Metaepigenome.
 
 ### Overview
-<img width="821" height="489" alt="Metaepigenome_overview" src="https://github.com/user-attachments/assets/9b8f3d0d-5996-4dcd-8053-788e1eda7a31" />
+<img width="4189" height="1782" alt="metaepigenome" src="https://github.com/user-attachments/assets/564efde3-e514-4de7-b109-776e0ef4101d" />
+
 
 ### Main step
 - Metagenome assembly and binning for MAG reconstruction
@@ -56,11 +57,13 @@ The main script in this study is: mainScript_HotSpring.sh
 
 ## Citation 
 - Metaepigenome.
-1. Hiraoka S. et al. in prep. 
-2. Satoshi Hiraoka*, Tomomi Sumida, Miho Hirai, Atsushi Toyoda, Shinsuke Kawagucci, Taichi Yokokawa, Takuro Nunoura. Diverse DNA modification in marine prokaryotic and viral communities. Nucleic Acids Research. 50(3), 1531-1550. (2022)
+1. Satoshi Hiraoka*, Shigeru Shimamura, Keiko Usui, Yi Zhang, Tomomi Sumida, Yuya Tsukamoto, Shigeru Kawai, Arisa Nishihara. Epigenomes in thermophilic microbial communities and their impact on the interaction across prokaryotes and mobilomes. bioRxiv. (2026)
+   - https://www.biorxiv.org/content/10.64898/2026.06.24.734251v1
+   - First paper of the Metaepigenomic analysis of thermophilic microbial communities including prokaryotes, viruses, and extrachromosomal genomes such as plasmids.
+3. Satoshi Hiraoka*, Tomomi Sumida, Miho Hirai, Atsushi Toyoda, Shinsuke Kawagucci, Taichi Yokokawa, Takuro Nunoura. Diverse DNA modification in marine prokaryotic and viral communities. Nucleic Acids Research. 50(3), 1531-1550. (2022)
    - https://academic.oup.com/nar/article/50/3/1531/6509096
    - First paper of the Metaepigenomic analysis of marine microbial communities including prokaryotes and viruses.
-3. Satoshi Hiraoka*, Yusuke Okazaki, Mizue Anda, Atsushi Toyoda, Shin-ichi Nakano, Wataru Iwasaki*. Metaepigenomic analysis reveals the unexplored diversity of DNA methylations in an environmental prokaryotic community. Nature Communications. 10, 159. (2019)
+4. Satoshi Hiraoka*, Yusuke Okazaki, Mizue Anda, Atsushi Toyoda, Shin-ichi Nakano, Wataru Iwasaki*. Metaepigenomic analysis reveals the unexplored diversity of DNA methylations in an environmental prokaryotic community. Nature Communications. 10, 159. (2019)
    - https://www.nature.com/articles/s41467-018-08103-y
    - First proposed the concept of Metaepigenomics.
    - Conducted the metaepigenomic analysis of freshwater samples and analyzed prokaryotic communities, including both bacteria and archaea.
