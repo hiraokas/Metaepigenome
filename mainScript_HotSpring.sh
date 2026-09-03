@@ -458,7 +458,6 @@ rename "lineargt500k_"                                    ""  ../checkm_Genome/C
 
 # rename seq ID and filename
 rm ../renameSeqID/ -r
-mkdir ../GenomeProkaryotes/pMAGv0.4_rename
 for f in ../checkm_Genome/CheckM2_pMAGv0.4_chromosome/*.fa; do
     # 1st_NSBL.part_001.fa          -> pMAGv0.4_1st_NSBL_001
     # 2nd_NWPT_s20_NWPT.part_006.fa -> pMAGv0.4_2nd_NWPT_s20_006.fa
@@ -466,13 +465,15 @@ for f in ../checkm_Genome/CheckM2_pMAGv0.4_chromosome/*.fa; do
     #genomeID=`basename ${f} | sed -e "s/.fa$//g"  -e "s/^/pMAGv0.4_/g"  -e "s/.part//g"`  
     first=` echo ${filename} | cut -f1 -d "." | cut -f1-3 -d "_"`
     second=`echo ${filename} | cut -f2 -d "." | sed -e "s/part_//g"`
-    genomeID=pMAGv0.4_${first}_${second}  
+      genomeID=pMAGv0.4_${first}_${second}  
+    # genomeID=pMAG_${first}_${second}  # final  
     ./rename_seqID.sh ${f} ${genomeID}
     echo ../renameSeqID/${filename} ../renameSeqID/${genomeID}.fa 
     mv   ../renameSeqID/${filename} ../renameSeqID/${genomeID}.fa 
 done
-mv ../renameSeqID/*.fa ../GenomeProkaryotes/pMAGv0.4_rename/
 rm ../renameSeqID/*.tsv
+mv ../renameSeqID/ ../GenomeProkaryotes/pMAGv0.4_rename/  -n
+# mv ../renameSeqID/ ../GenomeProkaryotes/pMAG_submit1/ -n # final
 
 # dereplicate (will require >590 GB RAM space) ----------------------------------
 # this step was skipped rather do after merging with pSAGs
@@ -727,6 +728,7 @@ for f in ../virsorter2/hifiasm*.out; do  # metagenome & 1th assembled contig
 done
 #rename "_1st_" "_2nd_" *
 #rename "_0th_" "_1st_" *
+# for f in *; do echo ${f}; newfilename=`echo ${f} | sed -e "s/1st/2nd/g" -e "s/0th/1st/g"` ; mv ${f} ${newfilename}; done
 
 #change seq ID and make one big sequence file---------------------------
 rm -r ../renameSeqID/
@@ -932,8 +934,9 @@ done
 mkdir ../gene/eccMAGv0.4_fix
 mv    ../gene/genecall/eccMAGv0.4_* ../gene/eccMAGv0.4_fix
 
+
 #===================================================================================================================================================================================================
-# pMAGand SAG definition 
+# pMAG/SAG definition 
 #===================================================================================================================================================================================================
 # # dereplicate prokaryotic genomes from NSOL site (both pMAGs and pSAGs) and make new AllGenome set -----------------------------
 # mkdir ../GenomeProkaryotes/siteNSBL_pMAGandSAGv0.6_beforeDereprication/ -p
@@ -954,18 +957,29 @@ cp ../GenomeProkaryotes/pMAGv0.6_fix/pMAGv0.4_*.fa ../GenomeProkaryotes/pMAGandS
 mkdir ../GenomeProkaryotes/pMAGandSAGv0.6_fix/
 cp ../dereplicate/pMAGandSAGv0.6_beforeDereprication_dRep_strict/dereplicated_genomes/* ../GenomeProkaryotes/pMAGandSAGv0.6_fix/
 
-# change seq IDs for article---------------------------
-# tentative (20260415)
+
+#===================================================================================================================================================================================================
+# MAG and SAG finalize for article data 
+# tentative (20260616)
+#===================================================================================================================================================================================================
 rm -r ../renameSeqID/
-mkdir ../GenomeProkaryotes/pMAGandSAGv0.6_fix/
-rm    ../GenomeProkaryotes/pMAGandSAGv0.6_fix/*
-for f in ../GenomeProkaryotes/P-AllMAGandSAGv0.6_fix/*.fa; do 
+mkdir ../GenomeAll/AllGenome_submit1/ -p  # final
+for f in ../GenomeProkaryotes/P-AllMAGandSAGv0.6_fix/*.fa; do  # final
+for f in ../GenomeViruses/vMAGv0.4_fix/*.fa;               do  # final
+for f in ../GenomeExtraChromosome/eccMAGv0.4_fix/*.fa;     do  # final
     filename=`basename ${f} | sed -e "s/.fa//g" `
-    ID=`    echo ${filename}| sed -e "s/P-MAG/pMAG/g" -e "s/P-SAG/pSAG/g" `   #vMAGv0.4_1st_NSBR_s118.fa -> vMAGv0.4_1st_NSBR_s118
+    ID=`    echo ${filename}| sed -e "s/vMAGv0.4_1st/vMAG_2nd/g"  -e "s/vMAGv0.4_0th/vMAG_1st/g"  -e "s/v0.4//g" -e "s/P-MAG/pMAG/g" -e "s/P-SAG/pSAG/g" `   #vMAGv0.4_1st_NSBR_s118.fa -> vMAG_1st_NSBR_s118
     echo ${ID}
     ./rename_seqID.sh ${f} ${ID}
-    mv ../renameSeqID/${filename}.fa ../GenomeProkaryotes/pMAGandSAGv0.6_fix/${ID}.fa
+    mv ../renameSeqID/${filename}.fa ../GenomeAll/AllGenome_submit1/${ID}.fa
 done
+rm ../renameSeqID/*.tsv
+ls ../GenomeAll/AllGenome_submit1/ 
+head ../GenomeAll/AllGenome_submit1/vMAG_1st_NSOL_525.fa
+head ../GenomeAll/AllGenome_submit1/pMAG_2nd_SY_s6_009.fa
+head ../GenomeAll/AllGenome_submit1/pSAG_xxx_NSOL_078.fa
+head ../GenomeAll/AllGenome_submit1/eccMAG_1st_NSGRN_053.fa
+seqkit stat ../GenomeAll/AllGenome_submit1/*.fa
 
 #cat   ../GenomeProkaryotes/pMAGandSAGv0.6_fix/*.fa            > ../GenomeProkaryotes/pMAGandSAGv0.6_fix.fa
 
@@ -1040,27 +1054,46 @@ seqkit stat -T ../GenomeAll/AllGenomev0.6_fix/*.fa    -a | cut -f4- -d "/" | sed
 qlogin -q cpu_I -l elapstim_req=8:00:00 -X
 conda activate py38
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/local/lib/
-nohup parallel -j 10 ./dfast.sh  {}       --load 90%  ::: ../GenomeProkaryotes/pMAGandSAGv0.6_fix/*.fa &
-nohup parallel -j 10 ./dfast.sh  {}       --load 90%  ::: ../GenomeViruses/vMAGv0.4_fix/*.fa           &
-nohup parallel -j 10 ./dfast.sh  {} virus --load 90%  ::: ../GenomeViruses/vMAGv0.4_fix/*.fa           &  # FOR DDBJ SUBMISSION
+ nohup parallel -j 10 ./dfast.sh  {}       --load 90%  ::: ../GenomeProkaryotes/pMAGandSAGv0.6_fix/*.fa &
+ nohup parallel -j 10 ./dfast.sh  {}       --load 90%  ::: ../GenomeViruses/vMAGv0.4_fix/*.fa           &
+#nohup parallel -j 10 ./dfast.sh  {} virus --load 90%  ::: ../GenomeViruses/vMAGv0.4_fix/*.fa           &  # FOR DDBJ SUBMISSION, ranslate table = 1
+#nohup parallel -j 10 ./dfast.sh  {} virus --load 90%  ::: ../GenomeViruses/vMAGv0.4_fix_forDDBJ/*.fa   &  # FOR DDBJ SUBMISSION, ranslate table = 1
 
-for f in ../GenomeViruses/vMAGv0.4_fix/*.fa; do
+ nohup parallel -j 10 ./dfast.sh  {}       --load 90%  ::: ../GenomeProkaryotes/pMAGandSAGv0.6_fix_pSAGforDDBJ/*.fa &  ## 20260626
+
+
+export LD_LIBRARY_PATH=:~/miniconda3/envs/py38/lib/
+#for f in ../GenomeViruses/vMAGv0.4_fix/*.fa; do
+for f in ../GenomeViruses/vMAGv0.4_fix_forDDBJ/*.fa; do
     echo ${f}
-    ./dfast.sh ${f} virus
+    ./dfast.sh ${f} virus  # translate table = 1
 done
+
+# 20260626
+export LD_LIBRARY_PATH=:~/miniconda3/envs/py38/lib/
+for f in ../GenomeProkaryotes/pMAGandSAGv0.6_fix_pSAGforDDBJ/*.fa; do
+    echo ${f}
+    ./dfast.sh ${f} 
+done
+
 
 mkdir ../dfast/pMAGandSAGv0.6_fix
 mkdir ../dfast/vMAGv0.4_fix
-mkdir ../dfast/vMAGv0.4_fix_DDBJ
 mv    ../dfast/p{MAG,SAG}*     ../dfast/pMAGandSAGv0.6_fix
 mv    ../dfast/vMAG*           ../dfast/vMAGv0.4_fix
-mv    ../dfast_DDBJvirus/vMAG* ../dfast/vMAGv0.4_fix_DDBJ
+mv    ../dfast_DDBJvirus/      ../dfast/vMAGv0.4_fix_forDDBJ -n
+
+# 20260626
+mkdir ../dfast/pMAGandSAGv0.6_fix_pSAGforDDBJ
+mv    ../dfast/pSAG*     ../dfast/pMAGandSAGv0.6_fix_pSAGforDDBJ
 
 # DDBJ genome submission --------------------------------------------------------------------------------------
 # rename and edit dfast annotation file for DDBJ submission
+rm -r ../dfast/rename
 mkdir ../dfast/rename -p
 #for f in ../dfast/{pMAGandSAGv0.6_fix,vMAGv0.4_fix}/*/ddbj/*; do  #.ann & .fasta
-for f in ../dfast/{pMAGandSAGv0.6_fix,vMAGv0.4_fix_DDBJ}/*/ddbj/*; do  #.ann & .fasta
+for f in ../dfast/{pMAGandSAGv0.6_fix,vMAGv0.4_fix_forDDBJ}/*/ddbj/*; do  #.ann & .fasta
+for f in ../dfast/pMAGandSAGv0.6_fix_pSAGforDDBJ/*/ddbj/*; do  #.ann & .fasta  # 20260626
     MAGID=`echo ${f} | cut -f4 -d "/" | sed -e "s/v0.4//g"`  # pMAGv0.4_1st_DW_Circle_002 -> pMAG_1st_DW_Circle_002
     ext=`  echo ${f} | sed 's/^.*\.\([^\.]*\)$/\1/'`
     newpath=../dfast/rename/${MAGID}.${ext}
@@ -1069,35 +1102,42 @@ for f in ../dfast/{pMAGandSAGv0.6_fix,vMAGv0.4_fix_DDBJ}/*/ddbj/*; do  #.ann & .
 done
 
 # split
+rm -r ../dfast/rename_{draft,complete}
 mkdir ../dfast/rename_{draft,complete} -p
+mkdir ../dfast/rename_draft_pSAG # 20260626
 mv ../dfast/rename/*Circle* ../dfast/rename_complete
 mv ../dfast/rename/*        ../dfast/rename_draft
+mv ../dfast/rename/*        ../dfast/rename_draft_pSAG  # 20260626
 
 # edit metadata for DDBJ submission
 #./makeDDBJBiologicalFeature.sh ../dfast/rename/ ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_addCOMMONbase.txt ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_ChangeDDBJFormat.txt
 #cp ../dfast/rename/*.fasta  ../DDBJ/renew_ForDDBJ/
 
+rm -r ../DDBJ/renew_{draft,complete}/
 mkdir ../DDBJ/renew_{draft,complete}/
 rm    ../DDBJ/renew_{draft,complete}/* ; rm ../DDBJ/renew/*
-./makeDDBJBiologicalFeature.sh ../dfast/rename_complete/ ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_addCOMMONcomplete.txt ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_ChangeDDBJFormat.txt ; mv ../DDBJ/renew/* ../DDBJ/renew_complete/
-./makeDDBJBiologicalFeature.sh ../dfast/rename_draft/    ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_addCOMMONbase.txt     ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_ChangeDDBJFormat.txt ; mv ../DDBJ/renew/* ../DDBJ/renew_draft/
+./makeDDBJBiologicalFeature.sh ../dfast/rename_complete/   ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_addCOMMONcomplete.txt ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_ChangeDDBJFormat.txt ; mv ../DDBJ/renew/*.{ann,fasta} ../DDBJ/renew_complete/
+./makeDDBJBiologicalFeature.sh ../dfast/rename_draft/      ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_addCOMMONbase.txt     ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_ChangeDDBJFormat.txt ; mv ../DDBJ/renew/*.{ann,fasta} ../DDBJ/renew_draft/
+./makeDDBJBiologicalFeature.sh ../dfast/rename_draft_pSAG/ ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_addCOMMONSAG.txt      ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_ChangeDDBJFormat.txt ; mv ../DDBJ/renew/*.{ann,fasta} ../DDBJ/renew_draft/  # overwrite
 
-# manual edit
+#  edit with manual-making rule
+rm -r ../DDBJ/renew_edit
 mkdir ../DDBJ/renew_edit
 while read line; do
     echo ${line}
     AnnoFile=`    echo "${line}" | cut -f1  `
-    TextBefor=`   echo "${line}" | cut -f2 | sed -e "s/complement(//g" -e "s/)//g"`
-    TextAfter=`   echo "${line}" | cut -f3 | sed -e "s/complement(//g" -e "s/)//g" `
+    TextBefor=`   echo "${line}" | cut -f2 | sed -e "s/complement(//g" -e "s/)//g" | tr -d "\r\n"`
+    TextAfter=`   echo "${line}" | cut -f3 | sed -e "s/complement(//g" -e "s/)//g" | tr -d "\r\n"`
 
     cat ../DDBJ/renew_{draft,complete}/${AnnoFile} | sed -e "s/${TextBefor}/${TextAfter}/g" > ../DDBJ/renew_edit/${AnnoFile}
 done < ../DDBJ/DDBJ_DfastMetaDataChangeRule_hotspring_rRNAChangeTable.txt
 
+rm -r ../DDBJ/renew2_{draft,complete}/
 mkdir ../DDBJ/renew2_{draft,complete}/
 cp ../DDBJ/renew_complete/*    ../DDBJ/renew2_complete/
 cp ../DDBJ/renew_draft/*       ../DDBJ/renew2_draft/
-mv ../DDBJ/renew_edit/*Circle* ../DDBJ/renew2_complete
-mv ../DDBJ/renew_edit/*        ../DDBJ/renew2_draft
+mv ../DDBJ/renew_edit/*Circle* ../DDBJ/renew2_complete  #overwrite
+mv ../DDBJ/renew_edit/*        ../DDBJ/renew2_draft     #overwrite
 
 
 # secondary metabolism prediction using antiSMASH -------------------------------------------
@@ -1573,6 +1613,25 @@ ls ../GenomeExtraChromosome/eccMAGv0.4_fix/*.fa > ../fastANI/list_plasmid.tsv
 fastANI --ql ../fastANI/list_plasmid.tsv --rl ../fastANI/list_plasmid.tsv -o ../fastANI/eccMAGv0.4_ALLvsALL_easy.tsv     -t 6 --minFraction 0.05 --fragLen 1000 --matrix 
 fastANI --ql ../fastANI/list_plasmid.tsv --rl ../fastANI/list_plasmid.tsv -o ../fastANI/eccMAGv0.4_ALLvsALL_semieasy.tsv -t 6 --minFraction 0.1  --fragLen 2000 --matrix 
 fastANI --ql ../fastANI/list_plasmid.tsv --rl ../fastANI/list_plasmid.tsv -o ../fastANI/eccMAGv0.4_ALLvsALL_normal.tsv   -t 6                                   --matrix 
+
+
+# plasmid check
+# PlasAnn-------------------
+conda activate plasann
+# PlasAnn --check-deps
+# PlasAnn --version
+# PlasAnn -i ../GenomeExtraChromosome/eccMAGv0.4_fix -o ../plasann/ -t fasta  
+./sbatch_DDBJ.sh epyc,rome,medium 4 8 16   source ${HOME}/miniconda3/etc/profile.d/conda.sh \; conda activate plasann \; PlasAnn -i ../GenomeExtraChromosome/eccMAGv0.4_fix -o ../plasann/ -t fasta  
+
+# Plasmer-------------------
+conda create -n plasmer -c iskoldt -c bioconda -c conda-forge -c defaults plasmer
+# donwload databa : https://github.com/nekokoe/Plasmer (manual)
+# ~/database/plasmer
+
+# run
+conda activate plasmer
+Plasmer -g ../GenomeExtraChromosome/eccMAGv0.4_fix/eccMAGv0.4_1st_DW_004.fa -p eccMAGv0.4_1st_DW_004 -d ${HOME}/database/plasmer -t 6 -o ../plasmer  # test
+Plasmer -g ../GenomeExtraChromosome/eccMAGv0.4_fix.fa                       -p eccMAGv0.4_fix        -d ${HOME}/database/plasmer -t 6 -o ../plasmer  
 
 
 #===================================================================================================================================================================================================
@@ -2157,7 +2216,7 @@ done
 # list up completed file
 for f in ../modification/AllGenomev0.6_v25maskMapSep/original_*motifs/*P-{SAG,MAG}*motifs.csv; do filename=`basename ${f}`; echo -e "${filename}"; done | sort
 
-# file move (1th and 2nd runs)----------------------------------------------
+# file move (1th and 2nd and 3rd runs)----------------------------------------------
 #GenomeAll ES
 mkdir ../modification/AllGenomev0.6_v25maskMapSep/original_1stES/          -p
 mkdir ../modification/AllGenomev0.6_v25maskMapSep/original_1stES_motifs/   -p
@@ -2175,17 +2234,17 @@ mkdir ../modification/AllGenomev0.6_v25maskMapSep/original_3rdDDBJ_motifs/ -p
 mv    ../modification/v25MapSep-pbmm2HiFi_AllGenomev0.6_fixmask_*              ../modification/AllGenomev0.6_v25maskMapSep/original_3rdDDBJ/
 cp    ../modification/AllGenomev0.6_v25maskMapSep/original_3rdDDBJ/*motifs.csv ../modification/AllGenomev0.6_v25maskMapSep/original_3rdDDBJ_motifs/
 
-#pSAG ES
-mkdir ../modification/pSAGv0.4_v25maskMapSep/original_1stES/               -p
-mkdir ../modification/pSAGv0.4_v25maskMapSep/original_1stES_motifs/        -p
-mv    ../modification/v25MapSep-pbmm2HiFi_pSAGv0.4_fixmask_*            ../modification/pSAGv0.4_v25maskMapSep/original_1stES/
-cp    ../modification/pSAGv0.4_v25maskMapSep/original_1stES/*motifs.csv ../modification/pSAGv0.4_v25maskMapSep/original_1stES_motifs/
+# #pSAG ES
+# mkdir ../modification/pSAGv0.4_v25maskMapSep/original_1stES/               -p
+# mkdir ../modification/pSAGv0.4_v25maskMapSep/original_1stES_motifs/        -p
+# mv    ../modification/v25MapSep-pbmm2HiFi_pSAGv0.4_fixmask_*            ../modification/pSAGv0.4_v25maskMapSep/original_1stES/
+# cp    ../modification/pSAGv0.4_v25maskMapSep/original_1stES/*motifs.csv ../modification/pSAGv0.4_v25maskMapSep/original_1stES_motifs/
 
-#pSAG DDBJ
-mkdir ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/             -p
-mkdir ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ_motifs/      -p
-mv    ../modification/v25MapSep-pbmm2HiFi_pSAGv0.4_fixmask_NSOL.hifi_kinetics_sorted_pSAGv0.4_xxx_NSOL_* ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/
-cp    ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/*motifs.csv                                ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ_motifs/
+# #pSAG DDBJ
+# mkdir ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/             -p
+# mkdir ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ_motifs/      -p
+# mv    ../modification/v25MapSep-pbmm2HiFi_pSAGv0.4_fixmask_NSOL.hifi_kinetics_sorted_pSAGv0.4_xxx_NSOL_* ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/
+# cp    ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/*motifs.csv                                ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ_motifs/
 
 # merge (do not change order) 
 mkdir ../modification/AllGenomev0.6_v25maskMapSep/original/ 
@@ -2193,10 +2252,10 @@ cp    ../modification/AllGenomev0.6_v25maskMapSep/original_1stES/*   ../modifica
 cp    ../modification/AllGenomev0.6_v25maskMapSep/original_2ndDDBJ/* ../modification/AllGenomev0.6_v25maskMapSep/original/
 cp    ../modification/AllGenomev0.6_v25maskMapSep/original_3rdDDBJ/* ../modification/AllGenomev0.6_v25maskMapSep/original/
 
-mkdir ../modification/pSAGv0.4_v25maskMapSep/original/      
-cp    ../modification/pSAGv0.4_v25maskMapSep/original_1stES/*        ../modification/pSAGv0.4_v25maskMapSep/original/
-cp    ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/*      ../modification/pSAGv0.4_v25maskMapSep/original/
-cp    ../modification/pSAGv0.4_v25maskMapSep/original_3rdDDBJ/*      ../modification/pSAGv0.4_v25maskMapSep/original/
+# mkdir ../modification/pSAGv0.4_v25maskMapSep/original/      
+# cp    ../modification/pSAGv0.4_v25maskMapSep/original_1stES/*        ../modification/pSAGv0.4_v25maskMapSep/original/
+# cp    ../modification/pSAGv0.4_v25maskMapSep/original_2ndDDBJ/*      ../modification/pSAGv0.4_v25maskMapSep/original/
+# cp    ../modification/pSAGv0.4_v25maskMapSep/original_3rdDDBJ/*      ../modification/pSAGv0.4_v25maskMapSep/original/
 
 #file move (each pattern) ----------------------------------------------
 #  mkdir -p ../modification/pMAGv0.4_v12mask{Naive,MapSep}/{original,rename}
@@ -2276,6 +2335,28 @@ for f in ../modification/${Dataset}_${strategy}/original/*basemods.gff; do      
     #echo 
     cp ${f} ../modification/${Dataset}_${strategy}/rename/${new_filename}.basemods.gff; 
 done
+
+#file rename and gather for DDBJ deposit--------------------------------------------------
+mkdir ../modification/AllGenomev0.6_v25maskMapSep/DDBJ/
+cp ../modification/AllGenomev0.6_v25maskMapSep/original/*.{motifs.csv,basemods.gff} ../modification/AllGenomev0.6_v25maskMapSep/DDBJ/
+for f in ../modification/AllGenomev0.6_v25maskMapSep/DDBJ/*; do
+    filename=`basename ${f}`
+    new_filename=`echo ${filename} |  cut -f 3- -d "." | sed -e  "s/hifi_kinetics_sorted_//g" | sed -e  "s/v0.4//g" `
+    echo "${f} -> ${new_filename}"
+    mv ${f} ../modification/AllGenomev0.6_v25maskMapSep/DDBJ/${new_filename}; 
+done
+# rename "P-MAG" "pMAG" *
+# rename "P-SAG" "pSAG" *
+# rename "V-MAG" "vMAG" *
+# rename "plasmid-MAG" "eccMAG" *
+# rm eccMAG*
+
+# md5sum
+md5sum ../modification/AllGenomev0.6_v25maskMapSep/DDBJ/* | sed -e "s/..\/modification\/AllGenomev0.6_v25maskMapSep\/DDBJ\///g" 
+
+# rename
+# rename vMAG_1st vMAG_2nd vMAG_*
+# rename vMAG_0th vMAG_1st vMAG_*
 
 # make motif summary into one tsv file--------------------------------------------------
 Dataset=AllGenomev0.6  #*
@@ -2360,7 +2441,7 @@ qlogin -q gpu_S -l elapstim_req=24:00:00 -X
 
 #mapped-read sepalation strategy
  python3 gff_ModificationMotifPresence_table.py ../motifHeatmap/MotifSet_Chloroflexusv02.tsv ../singlecell/pSAGv0.4_fix/        pSAGv0.4_v25maskMapSep      ../modification/pSAGv0.4_v25maskMapSep/rename/*.basemods.gff
- python3 gff_ModificationMotifPresence_table.py ../motifHeatmap/MotifSet_All_v03.tsv         ../GenomeAll/AllGenomev0.6_fix/    AllGenomev0.6_v25maskMapSep ../modification/AllGenomev0.6_v25maskMapSep/rename/*.basemods.gff
+ python3 gff_ModificationMotifPresence_table.py ../motifHeatmap/MotifSet_All_v04.tsv         ../GenomeAll/AllGenomev0.6_fix/    AllGenomev0.6_v25maskMapSep ../modification/AllGenomev0.6_v25maskMapSep/rename/*.basemods.gff
 
 #--------------------------------------------------
 # Motifs from Chlorofrexi
