@@ -1,9 +1,9 @@
 # Metaepigenome (under development)
 
-Metaepigenomics is a powerful culture-independent method for revealing the epigenomic landscape of microbial communities. Here, we are developing a bioinformatic workflow for metaepigenomic analysis.
-We are conducting a metaepigenomic analysis of thermophilic microbial samples and have provided the study scripts on this GitHub page.
+Metaepigenomics is a powerful culture-independent method for revealing the epigenomic landscape of microbial communities. Here, we are developing a bioinformatics workflow for metaepigenomic analysis.
+Using this, we are conducting a metaepigenomic analysis of thermophilic microbial samples, and have provided the study scripts on this GitHub page.
 
-Please note that the scripts were developed to analyze the original studies. This means that the scripts are not strictly concatenated as a stand-alone research pipeline and validated for other perspectives. The analysis has been performed on [the supercomputing system at National Institute of Genetics (NIG), Research Organization of Information and Systems (ROIS)](https://sc.ddbj.nig.ac.jp/en/), and [the Earth Simulator systems at JAMSTEC](https://www.jamstec.go.jp/es/en/).
+Please note that the scripts were developed to analyze the original studies. This means the scripts are not strictly concatenated into a stand-alone research pipeline or validated from other perspectives. We performed the analysis on [the supercomputing system at the National Institute of Genetics (NIG), Research Organization of Information and Systems (ROIS)](https://sc.ddbj.nig.ac.jp/en/) and [the Earth Simulator systems at JAMSTEC](https://www.jamstec.go.jp/es/en/).
 
 The main script and related modules are stored in the src/ directory. 
 The official source code repository is at https://github.com/hiraokas/Metaepigenome.
@@ -13,17 +13,18 @@ The official source code repository is at https://github.com/hiraokas/Metaepigen
 
 
 ### Main step
-- Metagenome assembly and binning for MAG reconstruction
-- Single-cell genome analysis for SAG reconstruction
-- Virus and extrachromosomal circular genome extraction
-- prokaryotic MAG/SAG dereplication, quality check, genomic analysis, and phylogenetic analysis
-- HiFi read mapping on MAG/SAGs
-- Modification call and motif prediction
-- defense system prediction
-- Host-virus prediction
+- Metagenome assembly and binning for prokaryotic MAG reconstruction (pMAGs).
+- Single-cell genome analysis for prokaryotic SAG reconstruction (pSAGs).
+- Viral genomes (vMAGs) and extrachromosomal circular genomes (eccMAGs) prediction.
+- Prokaryotic MAG/SAG dereplication for prepareing pMAG/SAGs dataset, and those quality check, genomic analysis, and phylogenetic analysis.
+- HiFi read mapping on the MAG/SAGs.
+- Modification calling and motif prediction.
+- Defense system prediction.
+- Host-mobilome interaction prediction.
+
 
 ## Code
-The codes are written in shell script and Python.
+The codes are mainly written in shell script and Python.
 The main script in this study is: mainScript_HotSpring.sh
 
 ## Used bioinformatic tools
